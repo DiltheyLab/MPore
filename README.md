@@ -13,12 +13,27 @@ Detailed information can be found in [Publication reference]
 1. **Create a new Conda environment**
    ```bash
    conda create -n Bacterial_context1
-   conda actiavte Bacterial_context1 ```
+   conda actiavte Bacterial_context1
 2. **Download the Snakemake_Tool with** 
    ```bash
    git clone https://github.com/AzlanNI/Tool1.git
    cd Tool1
-Dann geht es hier weiter 
+
+## Initialization
+1. **Setup CSV File**
+   
+After Instalation move into the Ordner1 Folder and create a CSV file containing the columns File_name, Reference_Path and Pod5_path. The first column is used as name in the downstream analysis for a isolate. And example for a CSV file would be 
+
+```csv
+File_name,Reference_path,pod5_path
+12256U,/home/azlan/Myco_Data/ref/12256U.fasta,/home/azlan/Myco_Data/pod5s/12256U
+8958VA,/home/azlan/M_hominis/ref/8958VA.fasta,/home/azlan/Myco_Data/pod5s/8958VA
+```
+Here File_names are the Isolates 12256U and 8958VA with their responding Reference and Pod5 paths. 
+
+
+
+
 
    
 
