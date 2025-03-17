@@ -9,6 +9,15 @@ Detailed information can be found in [Publication reference]
 - Activity assesment of candidate methyltransferases by statistical modelling 
 - MPores creates visulizations that show identified candidate enzymes, their recognition motifs, and the methylation status at the relevant genomic positions
 
+## Instalation 
+1. **Create a new Conda environment**
+   ```bash
+   conda create -n Bacterial_context1
+   conda actiavte Bacterial_context1 ```
+Hier geht es dann weiter 
+
+   
+
 
 
 
