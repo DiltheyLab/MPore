@@ -14,7 +14,14 @@ Detailed information can be found in [Publication reference]
    ```bash
    conda create -n Bacterial_context1
    conda actiavte Bacterial_context1 ```
-Hier geht es dann weiter 
+2. **Download the Snakemake_Tool with** 
+   ```bash
+   git clone https://github.com/AzlanNI/Tool1.git
+   cd Tool1
+Dann geht es hier weiter 
+
+   
+
 
    
 
