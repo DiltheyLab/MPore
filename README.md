@@ -87,16 +87,9 @@ The Output of MPore includes following files:
 - multipanel_plot_{file_name} the multipanel Plot for each isoalte shown in 5.
 - heatmap_methylation_Score_{context}.png showing the overall methylation signal for motifs of identified methylases in a heatmap
 
-5. **Visualisation**
-<img width="9000" height="6000" alt="multipanel_plot_Sp2565" src="https://github.com/user-attachments/assets/1f9cffb1-80d7-456b-9a93-fe1ab4e399d9" />
+<img width="10000" height="8576" alt="Seite 6" src="https://github.com/user-attachments/assets/d079f919-12d9-4395-8b9d-7f5ae8915057" />
 
-
-
-
-
-
-
-
+In this image we show the general workflow of MPore and the datastructure used for L1-regularized logistic regression. The Barplot shows methylase findings for our benchmark dataset from [Link]. And a multipanel plot example for M.hominis created by MPore.  
 For detailed information please look up our application note: [Link]
 Contact: Azlan@uni-duesseldorf.de
 
