@@ -73,18 +73,18 @@ It is also possible to use --Config as parameter to set the environment variable
 
 4. **Output**
 
--The Output of MPore includes following files: BAM and BED files: Generated from Dorado basecalling. The BED files contain site-specific methylation information, including coverage and number of modified reads.
--PROKKA annotations: All predicted CDS (coding sequences) for each isolate are stored in the corresponding file_name directories.
--BLASTP result files: Text files showing alignment results of the identified CDS against the REBASE database.
--All_Isolates_gene_loci.csv: Contains all enzymes with an e-value < e-25, including methyltransferases used for downstream analyses.
--Beta_coef_p_values_{methyltype}.csv: Lists enzymes with their beta coefficient estimates from L1-regularized logistic regression. {methyltype} can be 4mC, 5mC, or 6mA. Also includes origin gene loci for each enzyme.
--Context_influence_{methyltype}.xlsx: Shows the influence of flanking genomic context on the average genome-wide methylation.
--MTase_presence_e_25_values.csv: Summarizes identified methyltransferases (MTases) and their corresponding e-values across isolates.
--Sample_DF_{file_name}_{methyltype}.csv: Shows all analyzed motifs (both user-defined and REBASE-derived) and their average methylation scores per motif.
--Sample_DF_detailed_{file_name}_{methyltype}.csv: Provides per-site methylation scores for each analyzed motif.
--plots_{methyltype}/ directory: Contains boxplots comparing methylation scores across isolates. Associated enzyme data is included beneath each plot when applicable.
--multipanel_plot_{file_name}.png: A combined visualization showing relevant plots (as in point 5) for each isolate.
--heatmap_methylation_Score_{context}.png: A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context.
+- The Output of MPore includes following files: BAM and BED files: Generated from Dorado basecalling. The BED files contain site-specific methylation information, including coverage and number of modified reads.
+- PROKKA annotations: All predicted CDS (coding sequences) for each isolate are stored in the corresponding file_name directories.
+- BLASTP result files: Text files showing alignment results of the identified CDS against the REBASE database.
+- All_Isolates_gene_loci.csv: Contains all enzymes with an e-value < e-25, including methyltransferases used for downstream analyses.
+- Beta_coef_p_values_{methyltype}.csv: Lists enzymes with their beta coefficient estimates from L1-regularized logistic regression. {methyltype} can be 4mC, 5mC, or 6mA. Also includes origin gene loci for each enzyme.
+- Context_influence_{methyltype}.xlsx: Shows the influence of flanking genomic context on the average genome-wide methylation.
+- MTase_presence_e_25_values.csv: Summarizes identified methyltransferases (MTases) and their corresponding e-values across isolates.
+- Sample_DF_{file_name}_{methyltype}.csv: Shows all analyzed motifs (both user-defined and REBASE-derived) and their average methylation scores per motif.
+- Sample_DF_detailed_{file_name}_{methyltype}.csv: Provides per-site methylation scores for each analyzed motif.
+- plots_{methyltype}/ directory: Contains boxplots comparing methylation scores across isolates. Associated enzyme data is included beneath each plot when applicable.
+- multipanel_plot_{file_name}.png: A combined visualization showing relevant plots (as in point 5) for each isolate.
+- heatmap_methylation_Score_{context}.png: A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context.
 
 5. **Workflow and Multipanel** 
 <img width="10000" height="8576" alt="Seite 6" src="https://github.com/user-attachments/assets/d079f919-12d9-4395-8b9d-7f5ae8915057" />
