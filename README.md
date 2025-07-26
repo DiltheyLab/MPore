@@ -73,8 +73,7 @@ It is also possible to use --Config as parameter to set the environment variable
 
 4. **Output**
 
-The Output of MPore includes following files: 
--BAM and BED files: Generated from Dorado basecalling. The BED files contain site-specific methylation information, including coverage and number of modified reads.
+-The Output of MPore includes following files: BAM and BED files: Generated from Dorado basecalling. The BED files contain site-specific methylation information, including coverage and number of modified reads.
 -PROKKA annotations: All predicted CDS (coding sequences) for each isolate are stored in the corresponding file_name directories.
 -BLASTP result files: Text files showing alignment results of the identified CDS against the REBASE database.
 -All_Isolates_gene_loci.csv: Contains all enzymes with an e-value < e-25, including methyltransferases used for downstream analyses.
