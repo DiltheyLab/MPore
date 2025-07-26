@@ -95,6 +95,14 @@ The Output of MPore includes following files:
 
 
 
+For detailed information please look up our application note: [Link]
+Contact: Azlan@uni-duesseldorf.de
+
+
+
+
+
+
 
 
 
