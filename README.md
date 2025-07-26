@@ -88,6 +88,8 @@ The Output of MPore includes following files:
 - heatmap_methylation_Score_{context}.png showing the overall methylation signal for motifs of identified methylases in a heatmap
 
 5. **Visualisation**
+<img width="9000" height="6000" alt="multipanel_plot_Sp2565" src="https://github.com/user-attachments/assets/1f9cffb1-80d7-456b-9a93-fe1ab4e399d9" />
+
 
 
 
