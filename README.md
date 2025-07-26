@@ -74,19 +74,20 @@ It is also possible to use --Config as parameter to set the environment variable
 4. **Output**
 
 The Output of MPore includes following files: 
-- Bam files resulting from dorado basecalling and their corresponding bed files including site specific information (including number of modified reads, coverage etc.)
-- All found CDS from PROKKA are included in the file_name directories 
-- BlASTP results txt files including alignment results for the identified CDS against the REBASE data
-- All_Isolates_gene_loci.csv presenting the Enzymes with an e_value < e-25 including methylases used for the downstream analysis 
-- Beta_coef_p_values_{methyltype} where methyltype can be 4mC, 5mC or 6mA. Includes enzymes their beta coefficient estimate from the L1-regularized logistic regression and the origin gene loci for the enzymes
-- Context_influence_{methyltype}.xlsx showing the influence of the flanking genomic context on the average genome methylation
-- MTase_presence_e_25_values.csv showing identified enzymes and their corresponding e-value in isolates they were found in
-- Sample_DF_{file_name}_{methyltype}.csv showing all analyzed motifs (User defined + REBASE motifs of identified enzymes) and their average methylation score in the Nanopore data 
-- Sample_DF_detailed_{file_name}_{methyltype}.csv showing all individual sites for the analyzed motifs (User defined + REBASE motifs of identified enzymes) and the methylation score at each individual position
-- plots_{methyltype} this directory includes all Boxplots comparing the nanopore methylation score across isolates with a data under the boxplots if enzymes have been identified which would be influcening the positions showed in the boxplots
-- multipanel_plot_{file_name} the multipanel Plot for each isoalte shown in 5.
-- heatmap_methylation_Score_{context}.png showing the overall methylation signal for motifs of identified methylases in a heatmap
+-BAM and BED files: Generated from Dorado basecalling. The BED files contain site-specific methylation information, including coverage and number of modified reads.
+-PROKKA annotations: All predicted CDS (coding sequences) for each isolate are stored in the corresponding file_name directories.
+-BLASTP result files: Text files showing alignment results of the identified CDS against the REBASE database.
+-All_Isolates_gene_loci.csv: Contains all enzymes with an e-value < e-25, including methyltransferases used for downstream analyses.
+-Beta_coef_p_values_{methyltype}.csv: Lists enzymes with their beta coefficient estimates from L1-regularized logistic regression. {methyltype} can be 4mC, 5mC, or 6mA. Also includes origin gene loci for each enzyme.
+-Context_influence_{methyltype}.xlsx: Shows the influence of flanking genomic context on the average genome-wide methylation.
+-MTase_presence_e_25_values.csv: Summarizes identified methyltransferases (MTases) and their corresponding e-values across isolates.
+-Sample_DF_{file_name}_{methyltype}.csv: Shows all analyzed motifs (both user-defined and REBASE-derived) and their average methylation scores per motif.
+-Sample_DF_detailed_{file_name}_{methyltype}.csv: Provides per-site methylation scores for each analyzed motif.
+-plots_{methyltype}/ directory: Contains boxplots comparing methylation scores across isolates. Associated enzyme data is included beneath each plot when applicable.
+-multipanel_plot_{file_name}.png: A combined visualization showing relevant plots (as in point 5) for each isolate.
+-heatmap_methylation_Score_{context}.png: A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context.
 
+5. **Workflow and Multipanel** 
 <img width="10000" height="8576" alt="Seite 6" src="https://github.com/user-attachments/assets/d079f919-12d9-4395-8b9d-7f5ae8915057" />
 
 In this image we show the general workflow of MPore and the datastructure used for L1-regularized logistic regression. The Barplot shows methylase findings for our benchmark dataset from [Link]. And a multipanel plot example for M.hominis created by MPore.  
