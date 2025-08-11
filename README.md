@@ -89,7 +89,8 @@ The Output of MPore includes following files:
 
 5. **Workflow and Multipanel** 
 
-[MPore_workflow_bigger3_ad_2.pdf](https://github.com/user-attachments/files/21719603/MPore_workflow_bigger3_ad_2.pdf)
+<img width="9629" height="4605" alt="MPore_workflow_bigger3_ad_2" src="https://github.com/user-attachments/assets/87c21dc3-539c-45f4-b28e-530aac24d909" />
+
 
 In this image we show the general workflow of MPore and the datastructure used for L1-regularized logistic regression. The Barplot shows methylase findings for our benchmark dataset from [Link]. And a multipanel plot example for M.hominis created by MPore.  
 For detailed information please look up our application note: [Link]
