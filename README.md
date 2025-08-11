@@ -20,7 +20,7 @@ Detailed information can be found in [Publication reference]
    cd Tool1
 
 ## Initialization
-1. **Setup CSV File**
+1. **Setup CSV File and User Motif-lists**
    
 After Instalation move into the Ordner1 Folder and create a CSV file containing the columns File_name, Reference_Path and Pod5_path. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
 For visualization purposes it is recommended to not use to long File_names, futhermore it is recommended to use  string elements without any whitespaces. 
@@ -30,7 +30,12 @@ File_name,Reference_path,pod5_path
 12256U,/home/azlan/Myco_Data/ref/12256U.fasta,/home/azlan/Myco_Data/pod5s/12256U
 8958VA,/home/azlan/M_hominis/ref/8958VA.fasta,/home/azlan/Myco_Data/pod5s/8958VA
 ```
-Here File_names are the Isolates 12256U and 8958VA with their responding Reference and Pod5 paths. 
+Here File_names are the Isolates 12256U and 8958VA with their responding Reference and Pod5 paths. Next to this csv file the user should also provide a txt file containing motifs of interest if no motifs are of interest just provide a text file with following format:
+
+```motif-list
+GATC
+```
+GATC will now be used as dummy motif. By setting INCLUDE_REBASE_MOTIFS=true all motifs of the candidate methylases will be considered next to GATC. An empty motif of interest file should not be used as input. 
 
 2. **Setup Environment variables**
 
