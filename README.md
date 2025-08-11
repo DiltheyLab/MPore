@@ -88,7 +88,8 @@ The Output of MPore includes following files:
 - **`heatmap_methylation_Score_{context}.png`**: A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context.
 
 5. **Workflow and Multipanel** 
-<img width="10000" height="8576" alt="Seite 6" src="https://github.com/user-attachments/assets/d079f919-12d9-4395-8b9d-7f5ae8915057" />
+
+[MPore_workflow_bigger3_ad_2.pdf](https://github.com/user-attachments/files/21719603/MPore_workflow_bigger3_ad_2.pdf)
 
 In this image we show the general workflow of MPore and the datastructure used for L1-regularized logistic regression. The Barplot shows methylase findings for our benchmark dataset from [Link]. And a multipanel plot example for M.hominis created by MPore.  
 For detailed information please look up our application note: [Link]
