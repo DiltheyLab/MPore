@@ -1,0 +1,35 @@
+name: Modkit_env
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.9
+  - ont-modkit
+  - pandas
+  - samtools
+  - biopython
+  - openpyxl
+  - matplotlib
+  - prokka
+  - blast
+  - r-dplyr
+  - r-openxlsx
+  - r-tidyr
+  - numpy
+  - r-jsonlite
+  - r-argparse
+  - r-ggplot2
+  - r-stringr
+  - pyreadr
+  - r-tidyverse
+  - bioconductor-biostrings
+  - r-glmnet
+  - r-Matrix
+  - r-pheatmap
+  - r-reshape2
+  - r-tibble
+  - r-ggnewscale
+  - r-patchwork
+  - r-gridExtra
+  - r-stringr
