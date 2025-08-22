@@ -24,23 +24,28 @@ Detailed information can be found in [Publication reference].
 1. **Prepare the CSV file and user motif list**
    
 After installation, move into the `MPore` Folder and create a CSV file containing the columns `File_name`, `Reference_Path` and `Pod5_path`. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
-For visualization purposes it is recommended to not use to long File_names, futhermore it is recommended to use  string elements without any whitespaces. 
+For visualization purposes, it is recommended not to use overly long `File_names` entries. Also, avoid whitespace characters and instead use continuous strings
 
 ```csv
 File_name,Reference_path,pod5_path
 12256U,/home/azlan/Myco_Data/ref/12256U.fasta,/home/azlan/Myco_Data/pod5s/12256U
 8958VA,/home/azlan/M_hominis/ref/8958VA.fasta,/home/azlan/Myco_Data/pod5s/8958VA
 ```
-Here File_names are the Isolates 12256U and 8958VA with their responding Reference and Pod5 paths. Next to this csv file the user should also provide a txt file containing motifs of interest if no motifs are of interest just provide a text file with following format:
+Here, `File_name` corresponds to the isolates 12256U and 8958VA with their respective reference and POD5 paths
+In addition to this CSV file, the user should also provide a text file containing motifs of interest.
+If no motifs are of interest, simply provide a text file with the following format:
 
 ```motif-list
 GATC
 ```
-GATC will now be used as dummy motif. By setting INCLUDE_REBASE_MOTIFS=true all motifs of the candidate methylases will be considered next to GATC. An empty motif of interest file should not be used as input. 
+In this case, `GATC` will be used as a dummy motif.
+By setting `INCLUDE_REBASE_MOTIFS=true`, all motifs of the candidate methyltransferases will be considered in addition to `GATC`.
+*An empty motif file should not be used as input.*
 
-2. **Setup Environment variables**
+2. **Setup environment variables**
 
-Now setup variables for the command with ur paths and directories. Before Setting the variables up download [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and check its directory.
+Now, set up the required variables with your paths and directories.
+Before doing so, download [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and verify its installation path.
 
 ```bash
 export INPUT_CSV=Data_Test_Myco
@@ -55,16 +60,16 @@ export Log_analysis=True
 export REBASE_Motifs=TSV_REBASE_data.tsv
 export MODE=2
 ```
-- INPUT_CSV is the csv file created in step 1
-- OUTPUT_DIR is the path where the results should be saved to
-- DORADO_PATH is the directory in which dorado is saved
-- USER_MOTIF_LIST list of Motifs of interest
-- INCLUDE_REBASE includes motifs and findings from REBASE next t the Motifs of interest
-- TSV_DATA includes methylatransferases their recognition sites and catalyzed methylation from [REBASE](http://rebase.neb.com/rebase/rebase.html)
-- TSV_REBASE_data includes methyltransferases their recognition sites and catalyzed methylation from [REBASE](http://rebase.neb.com/rebase/rebase.html) in an concatenated format 
-- SPLIT toggles on a memory efficient workflow at the cost of runtime
-- LOG_ANALYSIS toggles on MPores statistical modelling
-- MODE=2 intiates the isolate-specific analysis in which for each isolate a regularized logistic regression is fitted (else if no MODE is set the default is cross-isolate analysis)
+- `INPUT_CSV`: the CSV file created in step 1
+- `OUTPUT_DIR`: directory where the results will be saved
+- `DORADO_PATH`: path to the Dorado installation
+- `USER_MOTIF_LIST`: list of motifs of interest
+- `INCLUDE_REBASE`: includes motifs and results from REBASE in addition to the motifs of interest
+- `TSV_DATA`: [REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types 
+- `TSV_REBASE_data`: concatenated [REBASE](http://rebase.neb.com/rebase/rebase.html) file with methyltransferases, recognition sites, and methylation types
+- `SPLIT`: enables a memory-efficient workflow at the cost of longer runtime, while creating splitted results
+- `LOG_ANALYSIS`: enables MPore’s statistical modeling
+- `MODE=2`: initiates isolate-specific analysis, where a regularized logistic regression is fitted for each isolate (default mode without this variable is cross-isolate analysis)
 
 It is recommended to toggle on LOG_ANALYSIS to activate MPores activity assesment for candidate methyltransferses. SPLIT should  be toggled on if the user is unsure about RAM capacity. 
 
@@ -81,19 +86,47 @@ It is also possible to use --Config as parameter to set the environment variable
 
 4. **Output**
 
-The Output of MPore includes following files:
-- **`BAM and BED files`**: Generated from Dorado basecalling. The BED files contain site-specific methylation information, including coverage and number of modified reads.
-- **`PROKKA annotations`**: All predicted CDS (coding sequences) for each isolate are stored in the corresponding file_name directories.
-- **`BLASTP result files`**: Text files showing alignment results of the identified CDS against the REBASE database.
-- **`All_Isolates_gene_loci.csv`**: Contains all enzymes with an e-value < e-25, including methyltransferases used for downstream analyses.
-- **`Beta_coef_p_values_{methyltype}.csv`**: Lists enzymes with their beta coefficient estimates from L1-regularized logistic regression. {methyltype} can be 4mC, 5mC, or 6mA. Also includes origin gene loci for each enzyme.
-- **`Context_influence_{methyltype}.xlsx`**: Shows the influence of flanking genomic context on the average genome-wide methylation.
-- **`MTase_presence_e_25_values.csv`**: Summarizes identified methyltransferases (MTases) and their corresponding e-values across isolates.
-- **`Sample_DF_{file_name}_{methyltype}.csv`**: Shows all analyzed motifs (both user-defined and REBASE-derived) and their average methylation scores per motif.
-- **`Sample_DF_detailed_{file_name}_{methyltype}.csv`**: Provides per-site methylation scores for each analyzed motif.
-- **`plots_{methyltype}/`** directory: Contains boxplots comparing methylation scores across isolates. Associated enzyme data is included beneath each plot when applicable.
-- **`multipanel_plot_{file_name}.png`**: A combined visualization showing relevant plots (as in point 5) for each isolate.
-- **`heatmap_methylation_Score_{context}.png`**: A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context.
+The output of **MPore** includes the following files:  
+
+- **BAM and BED files**  
+  Generated from Dorado basecalling.  
+  The BED files contain site-specific methylation information, including coverage and the number of modified reads.  
+
+- **PROKKA annotations**  
+  All predicted CDS (coding sequences) for each isolate are stored in the corresponding `file_name` directories.  
+
+- **BLASTP result files**  
+  Text files showing alignment results of the identified CDS against the REBASE database.  
+
+- **All_Isolates_gene_loci.csv**  
+  Contains all enzymes with an e-value < 1e-25, including methyltransferases used for downstream analyses and their gene loci of origin.  
+
+- **Beta_coef_p_values_{methyltype}.csv**  
+  Lists enzymes with their beta coefficient estimates from L1-regularized logistic regression.  
+  `{methyltype}` can be `4mC`, `5mC`, or `6mA`.  
+  The file also includes the origin gene loci for each enzyme.  
+
+- **Context_influence_{methyltype}.xlsx**  
+  Shows the influence of the flanking genomic context on the average genome-wide methylation.  
+
+- **MTase_presence_e_25_values.csv**  
+  Summarizes identified methyltransferases (MTases) and their corresponding e-values across isolates.  
+
+- **Sample_DF_{file_name}_{methyltype}.csv**  
+  Summarizes all analyzed motifs (both user-defined and REBASE-derived) with their average methylation scores per motif.  
+
+- **Sample_DF_detailed_{file_name}_{methyltype}.csv**  
+  Provides per-site methylation scores for each analyzed motif.  
+
+- **plots_{methyltype}/ directory**  
+  Contains boxplots comparing methylation scores across isolates.  
+  Associated enzyme data is shown beneath each plot when applicable.  
+
+- **multipanel_plot_{file_name}.png**  
+  A combined visualization showing the relevant plots (see section 5) for each isolate.  
+
+- **heatmap_methylation_Score_{context}.png**  
+  A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context. 
 
 5. **Workflow and Multipanel** 
 
