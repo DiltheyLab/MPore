@@ -23,7 +23,7 @@ Detailed information can be found in [Publication reference].
 ## Initialization
 1. **Prepare the CSV file and user motif list**
    
-After installation, move into the MPore Folder and create a CSV file containing the columns '''File_name''', '''Reference_Path''' and '''Pod5_path'''. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
+After installation, move into the `MPore` Folder and create a CSV file containing the columns `File_name`, `Reference_Path` and `Pod5_path`. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
 For visualization purposes it is recommended to not use to long File_names, futhermore it is recommended to use  string elements without any whitespaces. 
 
 ```csv
