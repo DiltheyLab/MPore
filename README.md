@@ -1,28 +1,29 @@
 # MPore
-Mpore is a user-friendly method for  database-driven identification of active methyltransferases in prokaryotic genomes from Oxford Nanopore R10 sequencing data
-Detailed information can be found in [Publication reference]
+MPore is a user-friendly method for database-driven identification of active methyltransferases in prokaryotic genomes using Oxford Nanopore R10 sequencing data.
+Detailed information can be found in [Publication reference].
+
 
 ## Features 
-- Basecalling supports POD5 for high performance modification calls with [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md)
+- Basecalling supports POD5 for high-performance modification calls with [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md)
 - Identifies candidate methyltransferases by homology search against [REBASE](http://rebase.neb.com/rebase/rebase.html) using [PROKKA](https://github.com/tseemann/prokka) and [BLASTP](https://github.com/blast-io/blast)
-- Genome wide methylation signals is generated form Nanopore data 
-- Activity assesment of candidate methyltransferases by L1 regularized logistic regression
-- MPores creates visulizations that show identified candidate enzymes, their recognition motifs, and the methylation status at the relevant genomic positions
+- Generates genome-wide methylation signals from Nanopore data
+- Assesses the activity of candidate methyltransferases using L1-regularized logistic regression
+- MPore creates visualizations showing identified candidate enzymes, their recognition motifs, and the methylation status at the relevant genomic positions.
 
 ## Instalation 
 1. **Create a new Conda environment**
    ```bash
    conda create -n Bacterial_context1
    conda actiavte Bacterial_context1
-2. **Download the Snakemake_Tool with** 
+2. **Download the Snakemake_Tool** 
    ```bash
    git clone https://github.com/AzlanNI/Tool1.git
    cd Tool1
 
 ## Initialization
-1. **Setup CSV File and User Motif-lists**
+1. **Prepare the CSV file and user motif list**
    
-After Instalation move into the Ordner1 Folder and create a CSV file containing the columns File_name, Reference_Path and Pod5_path. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
+After installation, move into the MPore Folder and create a CSV file containing the columns '''File_name''', '''Reference_Path''' and '''Pod5_path'''. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
 For visualization purposes it is recommended to not use to long File_names, futhermore it is recommended to use  string elements without any whitespaces. 
 
 ```csv
@@ -52,6 +53,7 @@ export TSV_REBASE_data=TSV_REBASE_data.tsv
 export SPLIT=true
 export Log_analysis=True
 export REBASE_Motifs=TSV_REBASE_data.tsv
+export MODE=2
 ```
 - INPUT_CSV is the csv file created in step 1
 - OUTPUT_DIR is the path where the results should be saved to
@@ -62,6 +64,7 @@ export REBASE_Motifs=TSV_REBASE_data.tsv
 - TSV_REBASE_data includes methyltransferases their recognition sites and catalyzed methylation from [REBASE](http://rebase.neb.com/rebase/rebase.html) in an concatenated format 
 - SPLIT toggles on a memory efficient workflow at the cost of runtime
 - LOG_ANALYSIS toggles on MPores statistical modelling
+- MODE=2 intiates the isolate-specific analysis in which for each isolate a regularized logistic regression is fitted (else if no MODE is set the default is cross-isolate analysis)
 
 It is recommended to toggle on LOG_ANALYSIS to activate MPores activity assesment for candidate methyltransferses. SPLIT should  be toggled on if the user is unsure about RAM capacity. 
 
