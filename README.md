@@ -57,7 +57,6 @@ export TSV_data=TSV_Enzyme.csv
 export TSV_REBASE_data=TSV_REBASE_data.tsv
 export SPLIT=true
 export Log_analysis=True
-export REBASE_Motifs=TSV_REBASE_data.tsv
 export MODE=2
 ```
 - `INPUT_CSV`: the CSV file created in step 1
