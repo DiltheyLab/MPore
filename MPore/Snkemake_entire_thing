@@ -10,7 +10,6 @@ include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "False").lower() == "
 TSV_Enzyme = os.getenv("TSV_data")
 TSV_REBASE = os.getenv("TSV_REBASE")
 Split_Log=os.getenv("SPLIT")
-REBASE_Motifs=os.getenv("REBASE_Motifs")
 Heatmap=os.getenv("HEATMAP")
 context=os.getenv("CONTEXT")
 with open(user_motif_list_path, 'r') as file:
@@ -241,7 +240,7 @@ rule run_6mA_analysis_script:
         output_dir=output_dir,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         tsv=TSV_Enzyme,
-        RB_Motifs=REBASE_Motifs
+        RB_Motifs=TSV_REBASE
     shell:
         """
         python Skripts/Run_analysis6mA.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.RB_Motifs}
@@ -286,7 +285,7 @@ rule run_4mC_analysis_script:
         output_dir=output_dir,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         tsv=TSV_Enzyme,
-        RB_Motifs=REBASE_Motifs
+        RB_Motifs=TSV_REBASE
     shell:
         """
         python Skripts/Run_analysis4mC.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.RB_Motifs}
@@ -344,7 +343,7 @@ rule run_5mC_analysis_script:
         output_dir=output_dir,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         tsv=TSV_Enzyme,
-        RB_Motifs=REBASE_Motifs
+        RB_Motifs=TSV_REBASE
     shell:
         """
         python Skripts/Run_analysis5mC.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.RB_Motifs}
