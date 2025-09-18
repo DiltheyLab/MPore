@@ -10,12 +10,12 @@ Detailed information can be found in [Publication reference].
 - Assesses the activity of candidate methyltransferases using L1-regularized logistic regression
 - MPore creates visualizations showing identified candidate enzymes, their recognition motifs, and the methylation status at the relevant genomic positions.
 
-## Instalation 
+## Installation 
 1. **Create a new Conda environment**
    ```bash
    conda create -n Bacterial_context1
-   conda actiavte Bacterial_context1
-2. **Download the Snakemake_Tool** 
+   conda activate Bacterial_context1
+2. **Clone the MPore respository** 
    ```bash
    git clone https://github.com/AzlanNI/Tool1.git
    cd Tool1
