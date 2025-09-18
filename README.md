@@ -17,8 +17,8 @@ Detailed information can be found in [Publication reference].
    conda activate Bacterial_context1
 2. **Clone the MPore respository** 
    ```bash
-   git clone https://github.com/AzlanNI/Tool1.git
-   cd Tool1
+   git clone https://github.com/AzlanNI/MPore.git
+   cd MPore
 
 ## Initialization
 1. **Prepare the CSV file and user motif list**
