@@ -52,7 +52,6 @@ export INPUT_CSV=Data_Test_Myco
 export OUTPUT_DIR=/home/azlan/Myco_Data/Output
 export DORADO_PATH=/home/azlan/Tools/dorado-0.8.0-linux-x64
 export USER_MOTIF_LIST=Motifs_6mA.txt
-export INCLUDE_REBASE_MOTIFS=true
 export TSV_data=TSV_Enzyme.csv
 export TSV_REBASE_data=TSV_REBASE_data.tsv
 export SPLIT=true
@@ -63,7 +62,6 @@ export MODE=2
 - `OUTPUT_DIR`: directory where the results will be saved
 - `DORADO_PATH`: path to the Dorado installation
 - `USER_MOTIF_LIST`: list of motifs of interest
-- `INCLUDE_REBASE`: includes motifs and results from REBASE in addition to the motifs of interest
 - `TSV_DATA`: [REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types 
 - `TSV_REBASE_data`: concatenated [REBASE](http://rebase.neb.com/rebase/rebase.html) file with methyltransferases, recognition sites, and methylation types
 - `SPLIT`: enables a memory-efficient workflow at the cost of longer runtime, while creating splitted results
