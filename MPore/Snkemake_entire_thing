@@ -6,7 +6,7 @@ input_csv = os.getenv("INPUT_CSV")
 output_dir = os.getenv("OUTPUT_DIR")
 Dorado_path = os.getenv("DORADO_PATH")
 user_motif_list_path = os.getenv("USER_MOTIF_LIST") 	
-include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "False").lower() == "true"
+include_rebase_motifs = true
 TSV_Enzyme = os.getenv("TSV_data")
 TSV_REBASE = os.getenv("TSV_REBASE")
 Split_Log=os.getenv("SPLIT")
