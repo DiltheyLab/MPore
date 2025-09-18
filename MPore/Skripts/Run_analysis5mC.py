@@ -153,7 +153,7 @@ def main():
     data_df = pd.read_csv(csv_file_path, names=["File_name", "Reference_path", "pod5_path","Bam_data","Bed_data"], skiprows=1)
 
     
-    include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "False").lower() == "true"
+    include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "true").lower() == "true"
     motifs_file_path = args.Motif_list
     motifs = []
     if motifs_file_path:
