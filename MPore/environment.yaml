@@ -11,7 +11,7 @@ dependencies:
   - biopython
   - openpyxl
   - matplotlib
-  - prokka
+  - prokka=1.14.6
   - blast
   - r-dplyr
   - r-openxlsx
