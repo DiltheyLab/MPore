@@ -9,13 +9,13 @@ user_motif_list_path = os.getenv("USER_MOTIF_LIST")
 include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "true").lower() == "true"
 os.environ["INCLUDE_REBASE_MOTIFS"] = str(include_rebase_motifs).lower()
 TSV_Enzyme = os.getenv("TSV_data")
-TSV_REBASE = os.getenv("TSV_REBASE")
+TSV_REBASE = os.getenv("TSV_REBASE_data")
 Split_Log=os.getenv("SPLIT")
 Heatmap=os.getenv("HEATMAP")
 context=os.getenv("CONTEXT")
 with open(user_motif_list_path, 'r') as file:
     user_motifs = [line.strip() for line in file if line.strip() and not line.strip().isdigit()]
-
+Log_analysis=os.getenv("Log_analysis", "True")
 data = pd.read_csv(input_csv)
 input_base = os.path.splitext(os.path.basename(input_csv))[0]
 updated_csv = os.path.join(output_dir, f"{input_base}_updated.csv")
@@ -412,10 +412,10 @@ rule run_5mC_Regression:
     shell:
         """
         if [ "${{MODE:-1}}" -eq 2 ]; then
-            Rscript ./Skripts/Loganalysis_isolate_spec_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase}
+            Rscript ./Skripts/Loganalysis_isolate_spec_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
             echo "Regression_5mC_done in isolate mode" > {output}
         else
-            Rscript ./Skripts/Loganalysis_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase}
+            Rscript ./Skripts/Loganalysis_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
             echo "Regression_5mC_done in cross mode" > {output}
         fi
         """
@@ -479,10 +479,10 @@ rule run_6mA_Regression:
     shell:
         """
         if [ "${{MODE:-1}}" -eq 2 ]; then
-            Rscript ./Skripts/Loganalysis_isolate_spec_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase}
+            Rscript ./Skripts/Loganalysis_isolate_spec_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
             echo "Regression_6mA_done in isolate mode" > {output}
         else
-            Rscript ./Skripts/Loganalysis_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase}
+            Rscript ./Skripts/Loganalysis_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
             echo "Regression_6mA_done in cross mode" > {output}
         fi
         """
@@ -547,10 +547,10 @@ rule run_4mC_Regression:
     shell:
         """
         if [ "${{MODE:-1}}" -eq 2 ]; then
-            Rscript ./Skripts/Loganalysis_isolate_spec_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase}
+            Rscript ./Skripts/Loganalysis_isolate_spec_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
             echo "Regression_4mC_done in isolate mode" > {output}
         else
-            Rscript ./Skripts/Loganalysis_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase}
+            Rscript ./Skripts/Loganalysis_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
             echo "Regression_4mC_done in cross mode" > {output}
         fi
         """
