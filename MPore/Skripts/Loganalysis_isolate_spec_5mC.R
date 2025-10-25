@@ -272,7 +272,12 @@ main <- function(input_dir, output_dir, enzyme_df_path, dataframe_path, MTase_pr
     combined_df <- combine_updated_dicts(updated_dict)
     print("Done with creating singular file")
     
-    origin_matrix <- model.matrix(~ Origin -1, data = combined_df)
+    if (length(unique(combined_df$Origin)) > 1) {
+      origin_matrix <- model.matrix(~ Origin - 1, data = combined_df)
+    } else {
+      origin_matrix <- matrix(1, nrow = nrow(combined_df), ncol = 1)
+      colnames(origin_matrix) <- unique(combined_df$Origin)
+    }
     colnames(origin_matrix) <- sub("^Origin", "", colnames(origin_matrix))
     combined_df <- cbind(combined_df, origin_matrix)
 
