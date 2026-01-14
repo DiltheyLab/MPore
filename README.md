@@ -46,19 +46,13 @@ By setting `INCLUDE_REBASE_MOTIFS=true`, all motifs of the candidate methyltrans
 
 Now, set up the required variables with your paths and directories.
 Before doing so, download [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and verify its installation path.
+To setup the variables move into the config.yaml file in the MPore directory. Inside the MPore directory u can open and adjust the config file for example with
 
 ```bash
-export INPUT_CSV=Data_Test_Myco
-export OUTPUT_DIR=/home/azlan/Myco_Data/Output
-export DORADO_PATH=/home/azlan/Tools/dorado-0.8.0-linux-x64
-export USER_MOTIF_LIST=Motifs_6mA.txt
-export TSV_data=TSV_Enzyme.csv
-export TSV_REBASE_data=TSV_REBASE_data.tsv
-export SPLIT=true
-export Log_analysis=True
-export MODE=2
-export HEATMAP=TRUE
+cd /MPore
+nano config.yaml
 ```
+
 - `INPUT_CSV`: the CSV file created in step 1
 - `OUTPUT_DIR`: directory where the results will be saved
 - `DORADO_PATH`: path to the Dorado installation
