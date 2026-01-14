@@ -84,6 +84,7 @@ Here is a outline and explanation for each variable being set for MPore:
 - `SPLIT`: enables a memory-efficient workflow at the cost of longer runtime, while creating splitted results
 - `LOG_ANALYSIS`: enables MPore’s statistical modeling
 - `MODE=2`: initiates isolate-specific analysis, where a regularized logistic regression is fitted for each isolate (default mode without this variable is cross-isolate analysis)
+- `heatmap`: enable heatmap plotting for figures like in step 5
 
 It is recommended to toggle on LOG_ANALYSIS to activate MPores activity assesment for candidate methyltransferses. SPLIT should  be toggled on if the user is unsure about RAM capacity. 
 
