@@ -50,7 +50,11 @@ An example to verify ur installation path could be the following:
 ```bash
 ls -l $(command -v dorado)
 ```
-
+If u download dorado as self-contained release from [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) u should also verify that all methylation detection models are downloaded 
+```bash
+find $HOME -type d -name "dorado-*"
+dorado download --model all
+```
 To setup the variables move into the config.yaml file in the MPore directory. Inside the MPore directory u can open and adjust the config file for example with
 
 ```bash
