@@ -10,11 +10,19 @@ Detailed information can be found in [Publication reference].
 - Assesses the activity of candidate methyltransferases using L1-regularized logistic regression
 - MPore creates visualizations showing identified candidate enzymes, their recognition motifs, and the methylation status at the relevant genomic positions.
 
+## External tools
+These tools should be already downloaded to the system or should be downloaded before usage of MPore 
+- [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md)
+- [PROKKA](https://github.com/tseemann/prokka)
+- [BLASTP](https://github.com/blast-io/blast)
+
+
 ## Installation 
 1. **Create a new Conda environment**
    ```bash
-   conda create -n Bacterial_context1
+   conda create -c conda-forge -c bioconda -n Bacterial_context1 snakemake
    conda activate Bacterial_context1
+   snakemake -help
 2. **Clone the MPore respository** 
    ```bash
    git clone https://github.com/AzlanNI/MPore.git
@@ -89,15 +97,28 @@ Here is a outline and explanation for each variable being set for MPore:
 It is recommended to toggle on LOG_ANALYSIS to activate MPores activity assesment for candidate methyltransferses. SPLIT should  be toggled on if the user is unsure about RAM capacity. 
 
 3. **Run Command**
+The `/usr/bin/time -v -o snakemake_resource_usage.txt` is used to see how long snakemake runs and how much resources it used. The user can remove this informational line and look into the logs file found in `MPore/logs`. These logs file are helpful to see when each individual step started and ended. 
+Also for debugging the log files should be advised since they give insight to detaled information.
+
 ```bash
-/usr/bin/time -v snakemake -s Snkemake_entire_thing \
-  --conda-frontend conda --cores all --use-conda --resources dorado=1 \
-  --rerun-incomplete \
-  > snakemake_pipeline_output.txt 2> snakemake_resource_usage_erros.txt
+/usr/bin/time -v -o snakemake_resource_usage.txt \
+snakemake -s Snkemake_entire_thing \
+  --configfile config.yaml \
+  --conda-frontend conda \
+  --cores all \
+  --use-conda \
+  --resources dorado=1 \
+  > snakemake_pipeline_out.txt \
+  2> snakemake_pipeline_err.txt
 ```
-- snakemake_pipeline_putput includes the standard output of the pipeline (echo, cat, executed snakemake rules)
-- snakemake_resource_usage_errors includes the errors and resource usage for the current usage
-It is also possible to use --Config as parameter to set the environment variables if one does not want to export them at the start
+
+- `configfile` allows our pipeline to include all environmental variables set in step 2
+- `conda-fronted conda` use conda (not mamba) to create and manage environments found in `/MPre/Enviornments`
+- `cores all` allow snakemake to use all available CPU cores
+- `resources dorado =1` limit dorado jobs runs to 1 at a time (useful fpr GPU and memory-intensive basecalling)
+- `snakemake_pipeline_out` includes the standard output of the pipeline (echo, cat, executed snakemake rules)
+- `snakemake_pipeline_err.txt` includes the errors for the current run
+
 
 4. **Output**
 
