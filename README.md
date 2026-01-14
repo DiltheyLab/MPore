@@ -46,6 +46,11 @@ By setting `INCLUDE_REBASE_MOTIFS=true`, all motifs of the candidate methyltrans
 
 Now, set up the required variables with your paths and directories.
 Before doing so, download [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and verify its installation path.
+An example to verify ur installation path could be the following: 
+```bash
+ls -l $(command -v dorado)
+```
+
 To setup the variables move into the config.yaml file in the MPore directory. Inside the MPore directory u can open and adjust the config file for example with
 
 ```bash
