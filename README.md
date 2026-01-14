@@ -24,7 +24,7 @@ These tools should be already downloaded to the system or should be downloaded b
 ## Installation 
 1. **Create a new Conda environment**
    ```bash
-   conda create -c conda-forge -c bioconda -n Bacterial_context1 snakemake
+   conda create -c conda-forge -c bioconda -n Bacterial_context1 snakemake=8.20.5
    conda activate Bacterial_context1
    snakemake -help
 2. **Clone the MPore respository** 
