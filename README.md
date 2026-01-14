@@ -29,7 +29,7 @@ These tools should be already downloaded to the system or should be downloaded b
    snakemake -help
 2. **Clone the MPore respository** 
    ```bash
-   git clone https://github.com/AzlanNI/MPore.git
+   git clone [https://github.com/DiltheyLab/MPore.git]
    cd MPore
 
 ## Initialization
