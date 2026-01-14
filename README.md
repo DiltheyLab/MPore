@@ -1,14 +1,18 @@
 # MPore
-MPore is a user-friendly method for database-driven identification of active methyltransferases in prokaryotic genomes using Oxford Nanopore R10 sequencing data.
-Detailed information can be found in [Publication reference].
+MPore is a pipeline for database-driven identification and activity assessment of methyltransferases in prokaryotic genomes using Oxford Nanopore R10 sequencing data. 
+
+MPore is designed to be user-friendly: it includes automated basecalling, motif extraction, statistical modeling, and visualization of methylation patterns. 
+
+For detailed methodology and benchmarking, see [Publication reference, DOI].
 
 
-## Features 
-- Basecalling supports POD5 for high-performance modification calls with [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md)
-- Identifies candidate methyltransferases by homology search against [REBASE](http://rebase.neb.com/rebase/rebase.html) using [PROKKA](https://github.com/tseemann/prokka) and [BLASTP](https://github.com/blast-io/blast)
-- Generates genome-wide methylation signals from Nanopore data
-- Assesses the activity of candidate methyltransferases using L1-regularized logistic regression
-- MPore creates visualizations showing identified candidate enzymes, their recognition motifs, and the methylation status at the relevant genomic positions.
+## Features
+- Performs basecalling from POD5 files using [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) for high-accuracy modification calls
+- Identifies candidate methyltransferases via homology search against [REBASE](http://rebase.neb.com/rebase/rebase.html) using [PROKKA](https://github.com/tseemann/prokka) and [BLASTP](https://github.com/blast-io/blast)
+- Generates genome-wide methylation signals from Nanopore sequencing data
+- Evaluates MTase activity using L1-regularized logistic regression
+- Produces visualizations of enzymes, their recognition motifs, and site-specific methylation patterns
+
 
 ## External tools
 These tools should be already downloaded to the system or should be downloaded before usage of MPore 
