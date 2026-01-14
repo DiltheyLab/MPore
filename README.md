@@ -100,7 +100,7 @@ Here is a outline and explanation for each variable being set for MPore:
 
 It is recommended to toggle on LOG_ANALYSIS to activate MPores activity assesment for candidate methyltransferses. SPLIT should  be toggled on if the user is unsure about RAM capacity. 
 
-3. **Run Command**
+3. **Run command**
 The `/usr/bin/time -v -o snakemake_resource_usage.txt` is used to see how long snakemake runs and how much resources it used. The user can remove this informational line and look into the logs file found in `MPore/logs`. These logs file are helpful to see when each individual step started and ended. 
 Also for debugging the log files should be advised since they give insight to detaled information.
 
@@ -138,7 +138,7 @@ The output of **MPore** includes the following files:
 - **BLASTP result files**  
   Text files showing alignment results of the identified CDS against the REBASE database.  
 
-- **All_Isolates_gene_loci.csv**  
+- **All_isolates_gene_loci.csv**  
   Contains all enzymes with an e-value < 1e-25, including methyltransferases used for downstream analyses and their gene loci of origin.  
 
 - **Beta_coef_p_values_{methyltype}.csv**  
@@ -158,17 +158,17 @@ The output of **MPore** includes the following files:
 - **Sample_DF_detailed_{file_name}_{methyltype}.csv**  
   Provides per-site methylation scores for each analyzed motif.  
 
-- **plots_{methyltype}/ directory**  
+- **Plots_{methyltype}/ directory**  
   Contains boxplots comparing methylation scores across isolates.  
   Associated enzyme data is shown beneath each plot when applicable.  
 
-- **multipanel_plot_{file_name}.png**  
+- **Multipanel_plot_{file_name}.png**  
   A combined visualization showing the relevant plots (see section 5) for each isolate.  
 
-- **heatmap_methylation_Score_{context}.png**  
+- **Heatmap_methylation_score_{context}.png**  
   A heatmap summarizing the global methylation signal across motifs of identified methyltransferases for a given genomic context. 
 
-5. **Workflow and Multipanel** 
+5. **Workflow and multipanel** 
 
 <img width="9629" height="4605" alt="MPore_workflow_bigger3_ad_2" src="https://github.com/user-attachments/assets/87c21dc3-539c-45f4-b28e-530aac24d909" />
 
