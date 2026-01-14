@@ -62,10 +62,14 @@ An example to verify ur installation path could be the following:
 ```bash
 ls -l $(command -v dorado)
 ```
-If u download dorado as self-contained release from [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) u should also verify that all methylation detection models are downloaded 
+If u download dorado as self-contained release from [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) u should also verify that all methylation detection models are downloaded in the `dorado_directory/lib`. The models `dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1`,`dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1` and `dna_r10.4.1_e8.2_400bps_hac@v5.0.0`should be included in ur models.
 ```bash
 find $HOME -type d -name "dorado-*"
-dorado download --model all
+dorado download --model all 
+```
+Instead of downloading all models u can also download specific models 
+```bash
+dorado download --model <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0>
 ```
 To setup the variables move into the config.yaml file in the MPore directory. Inside the MPore directory u can open and adjust the config file for example with
 
