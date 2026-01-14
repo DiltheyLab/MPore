@@ -15,7 +15,7 @@ For detailed methodology and benchmarking, see [Publication reference, DOI].
 
 
 ## External tools
-These tools should be already downloaded to the system or should be downloaded before usage of MPore 
+These tools should be already downloaded to the system or should be downloaded before usage of MPore. Download instructions can be revised using the listed names containting links to the main github pages:
 - [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md)
 - [PROKKA](https://github.com/tseemann/prokka)
 - [BLASTP](https://github.com/blast-io/blast)
