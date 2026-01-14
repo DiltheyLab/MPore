@@ -52,13 +52,26 @@ To setup the variables move into the config.yaml file in the MPore directory. In
 cd /MPore
 nano config.yaml
 ```
-
+This config file includes all variables needed for MPore. And can look like this:
+```
+input_csv: Data_Test.csv
+output_dir: /mnt/azlan/Nanomotif_data/Outpu
+dorado_path: /home/azlan/Tools/dorado-0.8.0-linux-x64
+user_motif_list: Motifs.txt
+tsv_data: TSV_Enzyme.csv
+tsv_rebase_data: TSV_REBASE_data.tsv
+split: true
+log_analysis: true
+mode: 1
+heatmap: true
+```
+Here is a outline and explanation for each variable being set for MPore:
 - `INPUT_CSV`: the CSV file created in step 1
 - `OUTPUT_DIR`: directory where the results will be saved
 - `DORADO_PATH`: path to the Dorado installation
 - `USER_MOTIF_LIST`: list of motifs of interest
-- `TSV_DATA`: [REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types 
-- `TSV_REBASE_data`: concatenated [REBASE](http://rebase.neb.com/rebase/rebase.html) file with methyltransferases, recognition sites, and methylation types
+- `TSV_DATA`: [REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types (should not be changed)
+- `TSV_REBASE_data`: concatenated [REBASE](http://rebase.neb.com/rebase/rebase.html) file with methyltransferases, recognition sites, and methylation types (should not be changed)
 - `SPLIT`: enables a memory-efficient workflow at the cost of longer runtime, while creating splitted results
 - `LOG_ANALYSIS`: enables MPore’s statistical modeling
 - `MODE=2`: initiates isolate-specific analysis, where a regularized logistic regression is fitted for each isolate (default mode without this variable is cross-isolate analysis)
