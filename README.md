@@ -56,7 +56,19 @@ File_name,Reference_path,pod5_path
 12256U,/home/azlan/Myco_Data/ref/12256U.fasta,/home/azlan/Myco_Data/pod5s/12256U
 8958VA,/home/azlan/M_hominis/ref/8958VA.fasta,/home/azlan/Myco_Data/pod5s/8958VA
 ```
-Here, `File_name` corresponds to the isolates 12256U and 8958VA with their respective reference and POD5 paths
+Here, `File_name` corresponds to the isolates 12256U and 8958VA with their respective reference and POD5 paths. In is highly recommended to adjiust contig names in the reference files if needed. Cause whitespaces and extra characters inside the contig names do not work well with multiple tools used in the pipeline. An easy check could be 
+```bash
+grep ">" 12256U.fasta
+>12256U Mycoplasma hominis, complete genome
+```
+And an adjustment would look as following 
+```bash
+zcat 12256U.fa.gz \ | awk '/^>/{print $1; next} {print}' \ > 12256U_formatted.fasta
+grep ">" 12256U_formatted.fasta
+>12256U 
+```
+
+
 In addition to this CSV file, the user should also provide a text file containing motifs of interest.
 If no motifs are of interest, simply provide a text file with the following format:
 
