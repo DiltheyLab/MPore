@@ -16,10 +16,23 @@ For detailed methodology and benchmarking, see [Publication reference, DOI].
 
 ## External tools
 These tools should be already downloaded to the system or should be downloaded before usage of MPore. Download instructions can be revised using the listed names containting links to the main github pages:
-- [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md)
-- [PROKKA](https://github.com/tseemann/prokka)
-- [BLASTP](https://github.com/blast-io/blast)
+- [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and verify its installation path.
 
+An example to verify ur installation path could be the following: 
+```bash
+ls -l $(command -v dorado)
+```
+If u download dorado as self-contained release from [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) u should also verify that all methylation detection models are downloaded in the `dorado_directory/lib`. 
+The models `dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1`,`dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1` and `dna_r10.4.1_e8.2_400bps_hac@v5.0.0`should be included in ur models directory.
+```bash
+find $HOME -type d -name "dorado-*"
+dorado download --model all 
+```
+Instead of downloading all models u can also download specific models 
+```bash
+dorado download --model <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0>
+```
+A detailed installation and download procedure can be looked at the provided link. 
 
 ## Installation 
 1. **Create a new Conda environment**
@@ -57,20 +70,6 @@ By setting `INCLUDE_REBASE_MOTIFS=true`, all motifs of the candidate methyltrans
 2. **Setup environment variables**
 
 Now, set up the required variables with your paths and directories.
-Before doing so, download [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and verify its installation path.
-An example to verify ur installation path could be the following: 
-```bash
-ls -l $(command -v dorado)
-```
-If u download dorado as self-contained release from [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) u should also verify that all methylation detection models are downloaded in the `dorado_directory/lib`. The models `dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1`,`dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1` and `dna_r10.4.1_e8.2_400bps_hac@v5.0.0`should be included in ur models.
-```bash
-find $HOME -type d -name "dorado-*"
-dorado download --model all 
-```
-Instead of downloading all models u can also download specific models 
-```bash
-dorado download --model <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0>
-```
 To setup the variables move into the config.yaml file in the MPore directory. Inside the MPore directory u can open and adjust the config file for example with
 
 ```bash
