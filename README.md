@@ -83,7 +83,8 @@ The `File_name` column is used as the isolate identifier throughout the downstre
 For visualization and compatibility purposes, it is recommended to:
 - avoid overly long `File_name` entries,
 - avoid whitespace characters,
-- use continuous, descriptive strings instead  
+- use continuous, descriptive strings instead
+
 An example input CSV file is shown below:
 
 ```csv
@@ -123,16 +124,8 @@ If no specific motifs are of interest, a dummy motif file can be provided, for e
 GATC
 ```
 In this case, `GATC` will be used as a placeholder motif.
-By setting:
-```bash
-INCLUDE_REBASE_MOTIFS=true
-```
 all motifs associated with candidate methyltransferases will be included in the analysis in addition to the user-defined motifs.
 #### Note: An empty motif file must not be used as input.
-
-
-By setting `INCLUDE_REBASE_MOTIFS=true`, all motifs of the candidate methyltransferases will be considered in addition to `GATC`.
-*An empty motif file should not be used as input.*
 
 2. **Setup environment variables**
 
