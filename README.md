@@ -14,25 +14,51 @@ For detailed methodology and benchmarking, see [Publication reference, DOI].
 - Produces visualizations of enzymes, their recognition motifs, and site-specific methylation patterns
 
 
-## External tools
-These tools should be already downloaded to the system or should be downloaded before usage of MPore. Download instructions can be revised using the listed names containting links to the main github pages:
-- [Dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) and verify its installation path.
+## External Tools
 
-An example to verify ur installation path could be the following: 
+MPore relies on external tools that must be installed **before** running the pipeline.  
+Please ensure that the following software is available on your system.
+
+### Dorado
+
+[Dorado](https://github.com/nanoporetech/dorado) is required for basecalling and methylation detection.
+
+#### Verify installation
+
+Make sure [Dorado](https://github.com/nanoporetech/dorado) is available in your `PATH`:
+
 ```bash
 ls -l $(command -v dorado)
 ```
-If u download dorado as self-contained release from [dorado](https://github.com/nanoporetech/dorado/blob/release-v0.9/README.md) u should also verify that all methylation detection models are downloaded in the `dorado_directory/lib`. 
-The models `dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1`,`dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1` and `dna_r10.4.1_e8.2_400bps_hac@v5.0.0`should be included in ur models directory.
+If this command does not return a valid path, Dorado is not correctly installed.
+### Model availability
+If Dorado was installed using the self-contained release, ensure that the required methylation detection models are present in:
+```bash
+<dorado_directory>/lib
+```
+The following models must be available:
+```bash
+- dna_r10.4.1_e8.2_400bps_hac@v5.0.0
+- dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1
+- dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1
+```
+You can locate your Dorado installation with:
 ```bash
 find $HOME -type d -name "dorado-*"
-dorado download --model all 
 ```
-Instead of downloading all models u can also download specific models 
+### Download models
+To download all available models:
 ```bash
-dorado download --model <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1> <dna_r10.4.1_e8.2_400bps_hac@v5.0.0>
+dorado download --model all
 ```
-A detailed installation and download procedure can be looked at the provided link. 
+Alternatively, you can download only the required models:
+```bash
+dorado download --model \
+dna_r10.4.1_e8.2_400bps_hac@v5.0.0 \
+dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1 \
+dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1
+```
+For detailed installation instructions, please refer to the official Dorado documentation.
 
 ## Installation 
 1. **Create a new Conda environment**
