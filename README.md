@@ -31,7 +31,7 @@ Make sure [Dorado](https://github.com/nanoporetech/dorado) is available in your 
 ls -l $(command -v dorado)
 ```
 If this command does not return a valid path, Dorado is not correctly installed.
-### Model availability
+#### Model availability
 If Dorado was installed using the self-contained release, ensure that the required methylation detection models are present in:
 ```bash
 <dorado_directory>/lib
@@ -46,7 +46,7 @@ You can locate your Dorado installation with:
 ```bash
 find $HOME -type d -name "dorado-*"
 ```
-### Download models
+#### Download models
 To download all available models:
 ```bash
 dorado download --model all
@@ -61,12 +61,13 @@ dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1
 For detailed installation instructions, please refer to the official Dorado documentation.
 
 ## Installation 
-1. **Create a new Conda environment**
+1. **Create a Conda environment**
+MPore is designed to run within a dedicated Conda environment.
    ```bash
    conda create -c conda-forge -c bioconda -n Bacterial_context1 snakemake=8.20.5
    conda activate Bacterial_context1
    snakemake -help
-2. **Clone the MPore respository** 
+2. **Clone the MPore repository** 
    ```bash
    git clone [https://github.com/DiltheyLab/MPore.git]
    cd MPore
