@@ -104,7 +104,7 @@ Example output:
 ```bash
 >12256U Mycoplasma hominis, complete genome
 ```
-A properly formatted contig header should contain only a single identifier.
+A properly formatted contig header should contain only a single identifier.  
 An example of how to reformat the FASTA file is shown below:
 ```bash
 zcat 12256U.fa.gz \ | awk '/^>/{print $1; next} {print}' \ > 12256U_formatted.fasta
