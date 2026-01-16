@@ -175,10 +175,10 @@ Below is an overview and explanation of each configuration parameter:
   Enables heatmap generation for summary figures (see Step 5)
 
 #### Recommended settings
-It is recommended to enable:
-`log_analysis: true`
-to activate MPore’s activity assessment for candidate methyltransferases.
-`split: true`
+It is recommended to enable:  
+`log_analysis: true`  
+to activate MPore’s activity assessment for candidate methyltransferases.  
+`split: true`  
 if available RAM is limited or unknown, to reduce memory usage at the expense of longer runtime.
 
 3. **Run command**
