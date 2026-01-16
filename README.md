@@ -151,27 +151,27 @@ heatmap: true
 #### Configuration parameters
 Below is an overview and explanation of each configuration parameter:
 
-- `INPUT_CSV`
+- `INPUT_CSV`  
   Path to the input CSV file created in Step 1
-- `OUTPUT_DIR`
+- `OUTPUT_DIR`  
   Directory where all MPore results will be written.
-- `DORADO_PATH`
+- `DORADO_PATH`  
   Path to the Dorado installation directory.
-- `USER_MOTIF_LIST`
+- `USER_MOTIF_LIST`  
   Text file containing user-defined DNA motifs of interest
-- `TSV_DATA`
+- `TSV_DATA`  
 [REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types (should not be modified).
-- `TSV_REBASE_data`
+- `TSV_REBASE_data`  
   Concatenated REBASE file containing methyltransferases, recognition sites, and methylation types (should not be modified).
-- `SPLIT`
+- `SPLIT`  
   Enables a memory-efficient workflow at the cost of increased runtime. When enabled, intermediate and result files are split into smaller chunks.
-- `LOG_ANALYSIS`
+- `LOG_ANALYSIS`  
   Enables MPore’s statistical modeling and activity assessment for candidate methyltransferases
-- `MODE`
+- `MODE`  
   Analysis mode selection:
    - `mode: 1` — cross-isolate analysis (default), fitting a regularized logistic regression model across isolates
    - `mode: 2` — isolate-specific analysis, fitting a regularized logistic regression model per isolate  
-- `heatmap`
+- `heatmap`  
   Enables heatmap generation for summary figures (see Step 5)
 
 #### Recommended settings
