@@ -81,8 +81,8 @@ After installation, navigate to the `MPore` directory and create a CSV file cont
 The `File_name` column is used as the isolate identifier throughout the downstream analysis.
 
 For visualization and compatibility purposes, it is recommended to:
-- avoid overly long `File_name` entries,
-- avoid whitespace characters,
+- avoid overly long `File_name` entries
+- avoid whitespace characters
 - use continuous, descriptive strings instead
 
 An example input CSV file is shown below:
@@ -127,17 +127,16 @@ In this case, `GATC` will be used as a placeholder motif.
 all motifs associated with candidate methyltransferases will be included in the analysis in addition to the user-defined motifs.
 #### Note: An empty motif file must not be used as input.
 
-2. **Setup environment variables**
+2. **Set up environment variables**
 
-Now, set up the required variables with your paths and directories.
-To setup the variables move into the config.yaml file in the MPore directory. Inside the MPore directory u can open and adjust the config file for example with
-
+Next, configure the required paths and runtime options via the `config.yaml` file located in the MPore directory.
+Navigate to the MPore folder and open the configuration file, for example using `nano`:
 ```bash
 cd /MPore
 nano config.yaml
 ```
-This config file includes all variables needed for MPore. And can look like this:
-```
+The config.yaml file contains all variables required to run MPore and may look like the following:
+```yaml
 input_csv: Data_Test.csv
 output_dir: /mnt/azlan/Nanomotif_data/Outpu
 dorado_path: /home/azlan/Tools/dorado-0.8.0-linux-x64
@@ -149,19 +148,38 @@ log_analysis: true
 mode: 1
 heatmap: true
 ```
-Here is a outline and explanation for each variable being set for MPore:
-- `INPUT_CSV`: the CSV file created in step 1
-- `OUTPUT_DIR`: directory where the results will be saved
-- `DORADO_PATH`: path to the Dorado installation
-- `USER_MOTIF_LIST`: list of motifs of interest
-- `TSV_DATA`: [REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types (should not be changed)
-- `TSV_REBASE_data`: concatenated [REBASE](http://rebase.neb.com/rebase/rebase.html) file with methyltransferases, recognition sites, and methylation types (should not be changed)
-- `SPLIT`: enables a memory-efficient workflow at the cost of longer runtime, while creating splitted results
-- `LOG_ANALYSIS`: enables MPore’s statistical modeling
-- `MODE=2`: initiates isolate-specific analysis, where a regularized logistic regression is fitted for each isolate (default mode without this variable is cross-isolate analysis)
-- `heatmap`: enable heatmap plotting for figures like in step 5
+#### Configuration parameters
+Below is an overview and explanation of each configuration parameter:
 
-It is recommended to toggle on LOG_ANALYSIS to activate MPores activity assesment for candidate methyltransferses. SPLIT should  be toggled on if the user is unsure about RAM capacity. 
+- `INPUT_CSV`
+  Path to the input CSV file created in Step 1
+- `OUTPUT_DIR`
+  Directory where all MPore results will be written.
+- `DORADO_PATH`
+  Path to the Dorado installation directory.
+- `USER_MOTIF_LIST`
+  Text file containing user-defined DNA motifs of interest
+- `TSV_DATA`
+[REBASE](http://rebase.neb.com/rebase/rebase.html)-derived file listing methyltransferases, their recognition sites, and associated methylation types (should not be modified).
+- `TSV_REBASE_data`
+  Concatenated REBASE file containing methyltransferases, recognition sites, and methylation types (should not be modified).
+- `SPLIT`
+  Enables a memory-efficient workflow at the cost of increased runtime. When enabled, intermediate and result files are split into smaller chunks.
+- `LOG_ANALYSIS`
+  Enables MPore’s statistical modeling and activity assessment for candidate methyltransferases
+- `MODE`
+  Analysis mode selection:
+   - `mode: 1` — cross-isolate analysis (default), fitting a regularized logistic regression model across isolates
+   - `mode: 2` — isolate-specific analysis, fitting a regularized logistic regression model per isolate  
+- `heatmap`
+  Enables heatmap generation for summary figures (see Step 5)
+
+#### Recommended settings
+It is recommended to enable:
+`log_analysis: true`
+to activate MPore’s activity assessment for candidate methyltransferases.
+`split: true`
+if available RAM is limited or unknown, to reduce memory usage at the expense of longer runtime.
 
 3. **Run command**
 The `/usr/bin/time -v -o snakemake_resource_usage.txt` is used to see how long snakemake runs and how much resources it used. The user can remove this informational line and look into the logs file found in `MPore/logs`. These logs file are helpful to see when each individual step started and ended. 
