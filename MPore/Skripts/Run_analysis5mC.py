@@ -34,6 +34,21 @@ iupac_to_regex = {
     'N': '[ATCG]'
 }
 
+def split_and_filter_motifs(motif_list) : 
+    clean_motifs = []
+    seen = set()
+    
+    for motif in motif_list:
+        if not isinstance(motif, str):
+            continue 
+        for m in motif.split(","):
+            m = m.strip()
+            if len(m) > 3 and re.fullmatch(r"[ACGTN]+", m):
+                if m not in seen:
+                    clean_motifs.append(m)
+                    seen.add(m)
+    return clean_motifs
+
 def iupac_to_regex_motif(motif):
     regex_motif = ''
     for base in motif:
@@ -45,7 +60,8 @@ def search_motifs(sequence, motifs):
     matches = {}
     for motif in motifs:
         regex_motif = iupac_to_regex_motif(motif)
-        motif_positions = [m.start() for m in re.finditer(regex_motif, sequence)]
+        pattern = f"(?={regex_motif})"
+        motif_positions = [m.start() for m in re.finditer(pattern, sequence)]
         matches[motif] = motif_positions
     return matches
 
@@ -153,23 +169,28 @@ def main():
     data_df = pd.read_csv(csv_file_path, names=["File_name", "Reference_path", "pod5_path","Bam_data","Bed_data"], skiprows=1)
 
     
-    include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "true").lower() == "true"
+    include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "True").lower() == "true"
     motifs_file_path = args.Motif_list
+    print(f"Motifs file path: {motifs_file_path}")
     motifs = []
     if motifs_file_path:
         with open(motifs_file_path, "r") as file:
             motifs = [line.strip() for line in file if line.strip()]
+    print(f"Loaded motifs: {motifs}")
     if include_rebase_motifs:
         mtase_file = args.Mtase_File
+        #mtase_file = "/Users/azlannisar/Desktop/mount/ONT_Meth_data/Output/Mtase_presence_e_25_values.csv"
         mtase_df = pd.read_csv(mtase_file)
-        enzyme_names = mtase_df.columns[1:].tolist() 
+        enzyme_names = mtase_df.columns[1:].tolist()
+        print(f"Enzyme Names: {enzyme_names}") 
         
         tsv_file = args.REBASE_Motifs
-        tsv_df = pd.read_csv(tsv_file, sep="\t")
-        tsv_df = tsv_df[tsv_df['MethylationType'] == "5mC"]
-        
+        #tsv_file = "/Users/azlannisar/Desktop/mount/M_hominis_Rho/MPore/TSV_Enzyme.csv"
+        tsv_df = pd.read_csv(tsv_file, sep=",")
+        tsv_df = tsv_df[tsv_df["MethylType"].str.contains("5mC", na=False)]
+        print(tsv_df.head())
         filtered_motifs = []
-        
+        #enzyme_names = [e.replace("S.", "M.") for e in enzyme_names]
         for enzyme in enzyme_names:
             enzyme_df = tsv_df[tsv_df['Enzyme'] == enzyme]
             for i, row in enzyme_df.iterrows():
@@ -180,15 +201,14 @@ def main():
                     filtered_motifs.append(complement_motif)
                 else:
                     filtered_motifs.append(row['Motif'])
+        print(f"Filtered Motifs: {filtered_motifs}")
         
-        filtered_motifs = [
-        motif for motif in filtered_motifs 
-        if re.match(r'^[A-Za-z]+$', motif) and len(motif) > 3]
-        
-        motifs = list(set(motifs + filtered_motifs))
-        
-    reversed_motifs = [motif[::-1] for motif in motifs]
-    
+        processed_motifs = split_and_filter_motifs(filtered_motifs)
+
+        print(f"Motifs before adding REBASE: {len(motifs)}")
+        motifs = list(set(motifs + processed_motifs))
+        print(f"Motifs after adding REBASE: {len(motifs)}")
+    reversed_motifs = [motif[::-1] for motif in motifs]    
     for index, row in data_df.iterrows():
         reference_path= row['Reference_path']
         bed_data_path= row['Bed_data']
@@ -327,8 +347,8 @@ def main():
     
 
         list_name = filename
-        dir_path = os.getenv("OUTPUT_DIR")
-
+        dir_path = args.output_dir
+        print(f"Saving data for 5mC under {args.output_dir}")
         os.makedirs(dir_path, exist_ok=True)
     
         list_output_path = os.path.join(dir_path, f"{list_name}_5mC.pkl")

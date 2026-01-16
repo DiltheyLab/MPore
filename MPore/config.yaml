@@ -1,0 +1,10 @@
+input_csv: Data_Test.csv
+output_dir: /mnt/azlan/Nanomotif_data/Outpu
+dorado_path: /home/azlan/Tools/dorado-0.8.0-linux-x64
+user_motif_list: Motifs.txt
+tsv_data: TSV_Enzyme.csv
+tsv_rebase_data: TSV_REBASE_data.tsv
+split: true
+log_analysis: true
+mode: 1
+heatmap: true

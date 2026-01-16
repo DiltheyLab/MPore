@@ -157,6 +157,11 @@ def process_data(df):
         elif len(positions) == 2 and positions[0].isdigit() and positions[1].isdigit():
             result_rows.append([enzyme, enzyme, motif, methyl_types[0], strands[0], positions[0]])
             result_rows.append([enzyme, enzyme, motif, methyl_types[1], strands[1], positions[1]])
+        
+        elif len(positions) == 3 and positions[0].isdigit() and positions[1].isdigit() and positions[2].isdigit():
+            result_rows.append([enzyme, enzyme, motif, methyl_types[0], strands[0], positions[0]])
+            result_rows.append([enzyme, enzyme, motif, methyl_types[1], strands[1], positions[1]])
+            result_rows.append([enzyme, enzyme, motif, methyl_types[2], strands[2], positions[2]])
 
     result_df = pd.DataFrame(result_rows, columns=['Enzyme', 'EnzymeUniqueMethylationActivity', 'Motif', 'MethylationType', 'Strand', 'Position'])
     return result_df
@@ -204,9 +209,9 @@ def count_enzyme_positions_for_motifs_fixed(contig_positions_dict, dataframes_li
     count_df = pd.DataFrame(data, columns=['Isolate', 'Enzyme', 'Count', 'Motif'])
     return count_df
 
-def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, enzyme_count_df, log_results_df, output_dir):
+def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, enzyme_count_df, log_results_df, output_dir, All_isolate_gene_df):
     unique_motifs = dataframes_list[0]['Motif'].unique()
-    
+    #unique_motifs = ['GC"A"NNNNNGTAA']
     
     for motif in unique_motifs:
         if '"A"' not in motif:
@@ -234,14 +239,14 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
                             new_entry.pop('Contig', None)
                             collected_data.append(new_entry)
 
-        fig_width = max(12, len(x_values) * 1.5)
-        num_enzyme_rows = len(enzyme_count_df['Enzyme'].unique())
-        fig_height = max(10, num_enzyme_rows * 0.6)
+        fig_width = max(12, len(x_values) * 2.2)
+        num_enzyme_rows = len(enzyme_count_df['Gene'].unique())
+        fig_height = max(10, num_enzyme_rows * 0.2)
 
         fig, (ax_box, ax_table) = plt.subplots(
             2, 1,
             figsize=(fig_width, fig_height),
-            gridspec_kw={'height_ratios': [2, 1]},
+            gridspec_kw={'height_ratios': [1, 1]},
             constrained_layout=True
         )
 
@@ -297,6 +302,16 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
             unique_data = unique_data.apply(update_row, axis=1)
             unique_data = unique_data.drop(columns=['Isolate'], errors='ignore')
             unique_data = unique_data.drop_duplicates().reset_index(drop=True)
+            unique_data = unique_data.merge(
+                All_isolate_gene_df[["Enzyme", "Gene"]],
+                on=["Enzyme"],
+                how="left"
+                )
+            unique_data= unique_data.dropna(subset=["Gene"]).reset_index(drop=True)
+            unique_data = (
+                unique_data.groupby("Gene", as_index=False).first())
+            unique_data = unique_data.drop(columns=["Gene"])
+            unique_data = unique_data.drop_duplicates().reset_index(drop=True)
             table_data = unique_data.values
             col_labels = unique_data.columns
 
@@ -311,15 +326,14 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
 
             table.auto_set_font_size(False)
             table.set_fontsize(8)
-            table.scale(2.0, 1.5)
+            table.scale(1.5, 1.5)
         else:
             ax_table.text(0.5, 0.5, f'No data for motif: {motif}', ha='center', va='center', fontsize=12)
             ax_table.axis('off')
-
         filename = os.path.join(output_dir, f'{motif}_6mA_boxplot.png')
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
-        
+    
 iupac_to_regex = {
     'A': 'A',
     'T': 'T',
@@ -341,7 +355,9 @@ iupac_to_regex = {
 def main():
     args = parse_arguments()
     directory = args.Input_dir
+    #directory ="/Users/azlannisar/Desktop/mount/Nanomotif_data/Outpu"
     csv_file_path = args.csv_list
+    #csv_file_path ="/Users/azlannisar/Desktop/mount/M_hominis_Rho/MPore/Data_Test.csv"
     data_df = pd.read_csv(csv_file_path, names=["File_name", "Reference_path", "pod5_path"], skiprows=1, index_col=False)
     file_names = set(data_df["File_name"].astype(str))
 
@@ -360,10 +376,12 @@ def main():
     
     
     mtase_presence_path = args.MTASE_FILE
-    
+    #mtase_presence_path = "/Users/azlannisar/Desktop/mount/Nanomotif_data/Outpu/Mtase_presence_e_25_values.csv"
     Mtase_presence = pd.read_csv(mtase_presence_path, sep=',', index_col=False)
     Mtase_presence = Mtase_presence[Mtase_presence["Isolates"].isin(file_names)]
     Mtase_presence = Mtase_presence.dropna(axis=1, how='all')
+    #Mtase_presence.columns = Mtase_presence.columns.str.replace(r"^S\.", "M.", regex=True)
+    #Mtase_presence = Mtase_presence.loc[:, ~Mtase_presence.columns.duplicated()]
 
     matched_beta_csv=[]
     matched_beta_csv= glob.glob(os.path.join(directory, 'Beta_coef_p_values_filt_6mA_*.csv'))
@@ -379,7 +397,6 @@ def main():
         
     
     tsv_file_path="./TSV_Enzyme.csv"
-    
     tsv_df = pd.read_csv(tsv_file_path, sep=',')
     nan_count = tsv_df['Position'].isna().sum()
     print(f"Number of NaN entries in 'Position': {nan_count}")
@@ -427,110 +444,109 @@ def main():
     enzyme_presence_df.to_csv(enzyme_presence_output_path, index=False)
     Set_of_non_negatives= Log_Results_df[Log_Results_df['beta_coefficient'] >= 0]
     enzyme_presence_df=enzyme_presence_df[enzyme_presence_df['Enzyme'].isin(Set_of_non_negatives['Enzyme'])]    
-
+    
+    #data_df['Reference_path']= (
+        #data_df['Reference_path'].str.replace("/mnt/azlan/", "/Users/azlannisar/Desktop/mount/", regex=False))
+    
     fasta_files = {}
     for index, row in data_df[data_df["File_name"].isin(file_names)].iterrows():
         fasta_files[row["File_name"]] = row["Reference_path"]
             
-    
+
     contig_positions_dict = defaultdict(lambda: defaultdict(list))
-    
     
     for isolate in x_values:
         contig_sequences = read_fasta(fasta_files[isolate])  
         isolate_positions = defaultdict(list)
-
+    
         seen_entries = defaultdict(set)
-
+    
+        # Iterate through each contig
         for contig_name, contig_sequence in contig_sequences.items():
-            
             for rowI in range(len(enzyme_presence_df)):
-                
                 row_data = enzyme_presence_df.iloc[rowI].to_dict()
                 motif = row_data['Motif']
+                
+                if ',' in motif:
+                    motifs = motif.split(',')
+                else:
+                    motifs = [motif]
                 position = int(row_data['Position'])
                 strand = row_data['Strand']
-                cleaned_motif = motif.replace('"', '')
-                expanded_motif = expand_iupac(cleaned_motif)  
-                p = re.compile(expanded_motif)
-    
                 
-                for m in p.finditer(contig_sequence):
-                    match_start_pos = m.start()
-                    
-                    if strand == "+":
-                        match_methylation_pos = match_start_pos + position - 1
-                    elif strand == "-":
-                        match_methylation_pos = match_start_pos + len(motif) - position
-
-                    if 0 <= match_methylation_pos < len(contig_sequence):
-                        
-                        row_data_with_contig = {**row_data, 'Contig': contig_name}
- 
-                        entry_key = (
-                            row_data_with_contig['EnzymeUniqueMethylationActivity'],
-                            row_data_with_contig['Motif'],
-                            match_methylation_pos,
-                        )
-    
-                        if entry_key not in seen_entries[contig_name, match_methylation_pos]:
-                            isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
-                            seen_entries[contig_name, match_methylation_pos].add(entry_key)
-    
+                for single_motif in motifs:
+                    cleaned_motif = single_motif.replace('"', '')
+                    expanded_motif = expand_iupac(cleaned_motif)  
+                    p = re.compile(f"(?=({expanded_motif}))")
         
+                    for m in p.finditer(contig_sequence):
+                        match_start_pos = m.start()
+                        if strand == "+":
+                            match_methylation_pos = match_start_pos + position - 1
+                        elif strand == "-":
+                            match_methylation_pos = match_start_pos + len(motif) - position
+                        
+        
+                        if 0 <= match_methylation_pos < len(contig_sequence):
+                            row_data_with_contig = {**row_data, 'Contig': contig_name}
+                            entry_key = (
+                                row_data_with_contig['EnzymeUniqueMethylationActivity'],
+                                row_data_with_contig['Motif'],
+                                match_methylation_pos,
+                            )
+        
+                            if entry_key not in seen_entries[contig_name, match_methylation_pos]:
+                                isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
+                                seen_entries[contig_name, match_methylation_pos].add(entry_key)
+                    
+                    
         for (contig_name, pos), data_list in isolate_positions.items():
             contig_positions_dict[isolate][(contig_name, pos)].extend(data_list)
 
     contig_positions_dict_1 = defaultdict(lambda: defaultdict(list))
     
-    
     for isolate in x_values:
         contig_sequences = read_fasta(fasta_files[isolate])  
         isolate_positions = defaultdict(list)
-
+    
         seen_entries = defaultdict(set)
-
+    
         for contig_name, contig_sequence in contig_sequences.items():
-            
             for rowI in range(len(enzyme_presence_df)):
-                
                 row_data = enzyme_presence_df.iloc[rowI].to_dict()
                 motif = row_data['Motif']
+                if ',' in motif:
+                    motifs = motif.split(',')
+                else:
+                    motifs = [motif]    
                 position = int(row_data['Position'])
                 strand = row_data['Strand']
-
-                reverse_complement_motif = str(Seq(motif).reverse_complement())
-
-                cleaned_motif = reverse_complement_motif.replace('"', '')
-                expanded_motif = expand_iupac(cleaned_motif)  
-                p = re.compile(expanded_motif)
-    
-                
-                for m in p.finditer(contig_sequence):
-                    match_start_pos = m.start()
+                for single_motif in motifs:
+                    reverse_complement_motif = str(Seq(single_motif).reverse_complement())
                     
-                    if strand == "+":
-                        match_methylation_pos = match_start_pos + len(motif) - position
-                    elif strand == "-":
-                        match_methylation_pos = match_start_pos + position -1 
-    
-                    
-                    if 0 <= match_methylation_pos < len(contig_sequence):
-                        
-                        row_data_with_contig = {**row_data, 'Contig': contig_name}
-    
-                        
-                        entry_key = (
-                            row_data_with_contig['EnzymeUniqueMethylationActivity'],
-                            match_methylation_pos,
-                        )
-    
-                        
-                        if entry_key not in seen_entries[contig_name, match_methylation_pos]:
-                            isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
-                            seen_entries[contig_name, match_methylation_pos].add(entry_key)
-    
+                    cleaned_motif = reverse_complement_motif.replace('"', '')
+                    expanded_motif = expand_iupac(cleaned_motif)  
+                    p = re.compile(f"(?=({expanded_motif}))")
         
+                    for m in p.finditer(contig_sequence):
+                        match_start_pos = m.start()
+                        if strand == "+":
+                            match_methylation_pos = match_start_pos + len(motif) - position
+                        elif strand == "-":
+                            match_methylation_pos = match_start_pos + position -1 
+        
+                        if 0 <= match_methylation_pos < len(contig_sequence):
+                            row_data_with_contig = {**row_data, 'Contig': contig_name}
+        
+                            entry_key = (
+                                row_data_with_contig['EnzymeUniqueMethylationActivity'],
+                                match_methylation_pos,
+                            )
+        
+                            if entry_key not in seen_entries[contig_name, match_methylation_pos]:
+                                isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
+                                seen_entries[contig_name, match_methylation_pos].add(entry_key)
+                    
         for (contig_name, pos), data_list in isolate_positions.items():
             contig_positions_dict_1[isolate][(contig_name, pos)].extend(data_list)
         
@@ -548,9 +564,18 @@ def main():
             combined_contig_positions_dict[isolate][(contig_name, pos)].extend(data_list) 
     enzyme_position_count_df = count_enzyme_positions_for_motifs_fixed(combined_contig_positions_dict, dataframes_list, x_values)
 
+    All_isolate_gene_path = os.path.join(args.output_dir, "All_Isolates_gene_loci.csv")
+    All_isolate_gene_df = pd.read_csv(All_isolate_gene_path)
     
+    #enzyme_position_count_df = enzyme_position_count_df.merge(
+        #All_isolate_gene_df[["Isolate", "Enzyme","Gene"]],
+        #on=["Isolate", "Enzyme"],
+        #how="left")
     
-    create_boxplots_with_data(dataframes_list, x_values, combined_contig_positions_dict, enzyme_position_count_df, Log_Results_df, args.output_dir)
+    #enzyme_position_count_df = enzyme_position_count_df.dropna(subset=["Gene"])
+
+    
+    create_boxplots_with_data(dataframes_list, x_values, combined_contig_positions_dict, enzyme_position_count_df, Log_Results_df, args.output_dir, All_isolate_gene_df)
 
 if __name__ == "__main__":
     main()

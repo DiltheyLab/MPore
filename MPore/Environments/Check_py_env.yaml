@@ -1,0 +1,7 @@
+name: check_py_env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pandas=2.3.3

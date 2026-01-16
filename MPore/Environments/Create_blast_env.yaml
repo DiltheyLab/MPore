@@ -1,0 +1,9 @@
+name: create_blast_env
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-dplyr=1.1.3
+  - r-openxlsx=4.2.5.2
+  - r-tidyr=1.3.0

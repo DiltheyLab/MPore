@@ -33,7 +33,6 @@ main <- function(input_dir, output_dir, enzyme_df_path, dataframe_path, MTase_pr
   tsv_enzyme_info <- read.csv(enzyme_df_path, sep = "\t")
   Data_ref <- read.csv(dataframe_path, stringsAsFactors = FALSE)
   MTase_df <- read.csv(MTase_presence)
-  MTase_df <- MTase_df[ ,c(TRUE, grepl("^M[0-9]*\\..+", colnames(MTase_df)[-1]))]  
   fasta_dict <- list()
   for (i in seq_len(nrow(Data_ref))) {
     file_name <- Data_ref$File_name[i]
@@ -271,7 +270,7 @@ main <- function(input_dir, output_dir, enzyme_df_path, dataframe_path, MTase_pr
     }
     combined_df <- combine_updated_dicts(updated_dict)
     print("Done with creating singular file")
-    
+ 
     if (length(unique(combined_df$Origin)) > 1) {
       origin_matrix <- model.matrix(~ Origin - 1, data = combined_df)
     } else {

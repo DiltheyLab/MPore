@@ -1,0 +1,6 @@
+name: Blastp_env
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - blast=2.16.0

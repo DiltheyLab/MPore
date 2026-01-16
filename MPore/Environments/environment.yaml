@@ -1,0 +1,36 @@
+name: Rho_4518VA_env
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.9
+  - ont-modkit=0.4.1
+  - pandas=2.3.3
+  - samtools=1.21
+  - biopython=1.85
+  - openpyxl=3.1.5
+  - matplotlib=3.9.2
+  - prokka=1.14.6
+  - blast=2.16.0
+  - r-dplyr=1.1.3
+  - r-openxlsx=4.2.5.2
+  - r-tidyr=1.3.0
+  - numpy=2.0.2
+  - r-jsonlite=1.8.7
+  - r-argparse=2.2.2
+  - r-ggplot2=3.4.4
+  - r-stringr=1.5.0
+  - pyreadr=0.5.0
+  - r-tidyverse=2.0.0
+  - bioconductor-biostrings=2.70.1
+  - r-glmnet=4.1_8
+  - r-Matrix=1.6_1.1
+  - r-pheatmap=1.0.12
+  - r-reshape2=1.4.4
+  - r-tibble=3.2.1
+  - r-ggnewscale=0.4.9
+  - r-patchwork=1.1.3
+  - r-gridExtra=2.3
+  - r-stringr=1.5.0
+  - jq=1.8.1

@@ -1,0 +1,15 @@
+name: Modkit_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9
+  - ont-modkit=0.4.1
+  - samtools=1.21
+  - pandas=2.3.3
+  - numpy=2.0.2
+  - biopython=1.85
+  - openpyxl=3.1.5
+  - matplotlib=3.9.2
+  - jq=1.8.1

@@ -44,9 +44,26 @@ def search_motifs(sequence, motifs):
     matches = {}
     for motif in motifs:
         regex_motif = iupac_to_regex_motif(motif)
-        motif_positions = [m.start() for m in re.finditer(regex_motif, sequence)]
+        pattern = f"(?={regex_motif})"
+        motif_positions = [m.start() for m in re.finditer(pattern, sequence)]
         matches[motif] = motif_positions
     return matches
+
+
+def split_and_filter_motifs(motif_list) : 
+    clean_motifs = []
+    seen = set()
+    
+    for motif in motif_list:
+        if not isinstance(motif, str):
+            continue 
+        for m in motif.split(","):
+            m = m.strip()
+            if len(m) > 3 and re.fullmatch(r"[ACGTN]+", m):
+                if m not in seen:
+                    clean_motifs.append(m)
+                    seen.add(m)
+    return clean_motifs
 
 #Function to generate Dataframe from the matches found in Fasta_Ref Sequence String,
 #It also applies Mod_Pos to see which Position in the reference Genome is modified 
@@ -152,10 +169,12 @@ def main():
     
     args = parse_arguments()
     csv_file_path= args.csv_list
+    #csv_file_path= "/Users/azlannisar/Desktop/mount/ONT_Meth_data/Output/HPylori_updated.csv"
     data_df = pd.read_csv(csv_file_path, names=["File_name", "Reference_path", "pod5_path","Bam_data","Bed_data"], skiprows=1)    
-    include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "true").lower() == "true"
+    include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "True").lower() == "true"
     print(f"Include REBASE Motifs: {include_rebase_motifs}")
     motifs_file_path = args.Motif_list
+    #motifs_file_path = "/Users/azlannisar/Desktop/mount/M_hominis_Rho/MPore/Motifs.txt"
     print(f"Motifs file path: {motifs_file_path}")
     motifs = []
     if motifs_file_path:
@@ -164,16 +183,18 @@ def main():
     print(f"Loaded motifs: {motifs}")
     if include_rebase_motifs:
         mtase_file = args.Mtase_File
+        #mtase_file = "/Users/azlannisar/Desktop/mount/ONT_Meth_data/Output/Mtase_presence_e_25_values.csv"
         mtase_df = pd.read_csv(mtase_file)
         enzyme_names = mtase_df.columns[1:].tolist()
         print(f"Enzyme Names: {enzyme_names}") 
         
         tsv_file = args.REBASE_Motifs
-        tsv_df = pd.read_csv(tsv_file, sep="\t")
-        tsv_df = tsv_df[tsv_df['MethylationType'] == "6mA"]
+        #tsv_file = "/Users/azlannisar/Desktop/mount/M_hominis_Rho/MPore/TSV_Enzyme.csv"
+        tsv_df = pd.read_csv(tsv_file, sep=",")
+        tsv_df = tsv_df[tsv_df["MethylType"].str.contains("6mA", na=False)]
         print(tsv_df.head())
         filtered_motifs = []
-        
+        #enzyme_names = [e.replace("S.", "M.") for e in enzyme_names]
         for enzyme in enzyme_names:
             enzyme_df = tsv_df[tsv_df['Enzyme'] == enzyme]
             for i, row in enzyme_df.iterrows():
@@ -185,11 +206,11 @@ def main():
                 else:
                     filtered_motifs.append(row['Motif'])
         print(f"Filtered Motifs: {filtered_motifs}")
-        filtered_motifs = [
-        motif for motif in filtered_motifs 
-        if re.match(r'^[A-Za-z]+$', motif) and len(motif) > 3]
+        
+        processed_motifs = split_and_filter_motifs(filtered_motifs)
+
         print(f"Motifs before adding REBASE: {len(motifs)}")
-        motifs = list(set(motifs + filtered_motifs))
+        motifs = list(set(motifs + processed_motifs))
         print(f"Motifs after adding REBASE: {len(motifs)}")
     reversed_motifs = [motif[::-1] for motif in motifs]
     
@@ -323,7 +344,7 @@ def main():
             Boxplot_dfs[key] = df.drop_duplicates(subset=['Mod_Pos', 'Motif', 'Strand', 'Contig'])
         list_name = filename
         dir_path = args.output_dir
-
+        print(f"Saving data for 6mA under {args.output_dir}")
         os.makedirs(dir_path, exist_ok=True)
     
         num_rows_dict = {key: len(value) for key, value in Boxplot_dfs.items()}
@@ -338,11 +359,11 @@ def main():
 
         merged_dfs_copy = merged_dfs.copy()
         concatenated_df = pd.concat(merged_dfs_copy, ignore_index=True)
+        concatenated_df = concatenated_df[concatenated_df.iloc[:, 6:].isna().all(axis=1)]
 
         Sample_DF = pd.DataFrame(Sample_DF) 
         concatenated_df = pd.DataFrame(concatenated_df) 
-        rows_to_keep = concatenated_df.apply(lambda row: len(row) <= 6, axis=1)
-        concatenated_df = concatenated_df[rows_to_keep]
+        
 
         xlsx_file_path = os.path.join(dir_path, f"Sample_DF_{list_name}_6mA.xlsx")
         csv_file_path = os.path.join(dir_path, f"Sample_DF_{list_name}_6mA.csv")

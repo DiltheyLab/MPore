@@ -31,13 +31,10 @@ add_marker_to_motif <- function(motif, position, strand) {
 
 args <- commandArgs(trailingOnly = TRUE)
 Output_2 <- args[1]
-Context <- args[2]
-Gene_df <- args[3]
+Gene_df <- args[2]
 
-
-
-
-
+#Output_2 <- "/Users/azlannisar/Desktop/mount2/ONT_Meth_data/Output"
+#Gene_df <- "/Users/azlannisar/Desktop/mount2/ONT_Meth_data/Output/All_Isolates_gene_loci.csv"
 
 file_pattern <- "enzyme_presence_df.csv"
 file_paths <- list.files(path = Output_2, 
@@ -239,7 +236,7 @@ if ("6mA" %in% Methyltypes) {
   
   result_df_6mA <- data.frame(Key = character(0))
   
-  for (isolate in names(file_names)) {
+  for (isolate in names(file_names_6mA)) {
     for (file_path in file_names_6mA[[isolate]]) {
       df <- read.csv(file_path)
       key_column <- df$Key
@@ -442,7 +439,6 @@ if ("4mC" %in% Methyltypes) {
   heatmap_df_4mC$Isolate <- gsub("barcode", "Isolate", heatmap_df_4mC$Isolate)
   heatmap_df_4mC$Methyltype <- "4mC"
 }
-
 combined_heatmap_data <- data.frame()
 if (exists("heatmap_df")) {
   combined_heatmap_data <- rbind(combined_heatmap_data, heatmap_df)
@@ -462,65 +458,115 @@ if (exists("heatmap_df_4mC")) {
 } else {
   print("heatmap_df_4mC not found.")
 }
-
+unique_motifs <- unique(combined_heatmap_data$Motif)
+n_motifs <- length(unique_motifs)
+cat("[INFO] Number of unique motifs:", n_motifs, "\n")
 for (i in combined_heatmap_data$Methyltype) {
   assign(paste0("data_", i), combined_heatmap_data %>% filter(Methyltype == i))
 }
+if (exists("data_6mA")) {
+  data_6mA <- data_6mA[!is.na(data_6mA$Methylation_Score), ]
+}
 
-
-p <- ggplot()
+if (exists("data_4mC")) {
+  data_4mC <- data_4mC[!is.na(data_4mC$Methylation_Score), ]
+}
 
 if (exists("data_5mC")) {
-  p <- p + 
-    geom_tile(data = data_5mC, aes(x = Isolate, y = Motif, fill = Methylation_Score), 
-              color = "grey", linewidth = 0.5)+
-    geom_tile(data = subset(data_5mC, Border == "1"),
-              aes(x = Isolate, y = Motif), color = "black", linewidth = 1, fill = NA)+
-    scale_fill_gradient(low = "white", high = "blue",
-                        name = "5mC Score", limits = c(0, 100), na.value = "grey")
+  data_5mC <- data_5mC[!is.na(data_5mC$Methylation_Score), ]
+}
+cat("[INFO] if number of motifs is > 30 please consider all batched plots for results")
+batch_size <- 30
+n_batches <- ceiling(n_motifs / batch_size)
+
+head(data_4mC)
+head(data_6mA)
+if (exists("data_4mC")) {
+  str(data_4mC)
+  cat("class(data_4mC$Methylation_Score):", class(data_4mC$Methylation_Score), "\n")
+  cat("unique(data_4mC$Methylation_Score):", unique(data_4mC$Methylation_Score), "\n\n")
 }
 if (exists("data_6mA")) {
-  p <- p + 
-    new_scale_fill() +
-    geom_tile(data = data_6mA, aes(x = Isolate, y = Motif, fill = Methylation_Score), 
-              color = "grey", linewidth = 0.5)+
-    geom_tile(data = subset(data_6mA, Border == "1"),
-              aes(x = Isolate, y = Motif), color = "black", linewidth = 1, fill = NA)+
-    scale_fill_gradient(low = "white", high = "red",
-                        name = "6mA Score", limits = c(0,100), na.value = "grey")
+  str(data_6mA)
+  cat("class(data_6mA$Methylation_Score):", class(data_6mA$Methylation_Score), "\n")
+  cat("unique(data_6mA$Methylation_Score):", unique(data_6mA$Methylation_Score), "\n\n")
 }
-if (exists("data_4mC")) {
-  p <- p + 
-    new_scale_fill() + 
-    geom_tile(data = data_4mC, aes(x = Isolate, y = Motif, fill = Methylation_Score), 
-              color = "grey", linewidth = 0.5)+
-    geom_tile(data = subset(data_4mC, Border == "1"),
-              aes(x = Isolate, y = Motif), color = "black", linewidth = 1, fill = NA)+
-    scale_fill_gradient(low = "white", high = "green",
-                        name = "4mC Score", limits = c(0, 100), na.value = "grey")
+if (exists("data_5mC")) {
+  str(data_5mC)
+  cat("class(data_5mC$Methylation_Score):", class(data_5mC$Methylation_Score), "\n")
+  cat("unique(data_5mC$Methylation_Score):", unique(data_5mC$Methylation_Score), "\n\n")
 }
-
-
-p <- suppressMessages(p + 
-  labs(title = "Isolate / methylation (Cohort)", x = "Isolate", y = "Motif") +
-  theme_minimal(base_size = 15) +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 25, color = "black", family = "Arial"),
-    axis.text.y = element_text(color = "black", size = 25, family = "Arial"),
-    plot.background = element_rect(fill = "white", color = NA),
-    panel.background = element_rect(fill = "white", color = NA),
-    panel.grid = element_blank()
-  ) +
-  coord_fixed(ratio = 1))
-
-
-ggsave(
-  file.path(Output_2,paste0("heatmap_Methylation_Score.png")),
-  plot = p,
-  width = 10,
-  height = 10,
-  dpi = 300
-)
+panel_B_list <- vector("list", n_batches)
+for (i in 1:n_batches) {
+  batch_motifs <- unique_motifs[((i-1)*batch_size + 1) : min(i*batch_size, n_motifs)]
+  batch_motifs_factor <- factor(batch_motifs, levels = batch_motifs)
+  cat("[INFO] working on batch", i,"...")
+  p <- ggplot()
+  
+  if (exists("data_5mC")) {
+    data_5mC_batch_data <- data_5mC[data_5mC$Motif %in% batch_motifs, ]
+    data_5mC_batch_data$Motif <- factor(data_5mC_batch_data$Motif, levels = levels(batch_motifs_factor))
+    p <- p + 
+      geom_tile(data = data_5mC_batch_data, aes(x = Isolate, y = Motif, fill = Methylation_Score), 
+                color = "grey", linewidth = 0.5) +
+      geom_tile(data = subset(data_5mC_batch_data, Border == "1"),
+                aes(x = Isolate, y = Motif), color = "black", linewidth = 1, fill = NA) +
+      scale_fill_gradient(low = "white", high = "blue",
+                          name = "5mC Score", limits = c(0, 100), na.value = "grey")
+    prev_scale_exists <- TRUE
+  } else {
+    prev_scale_exists <- FALSE
+  }
+  
+  if (exists("data_6mA")) {
+    data_6mA_batch_data <- data_6mA[data_6mA$Motif %in% batch_motifs, ]
+    data_6mA_batch_data$Motif <- factor(data_6mA_batch_data$Motif, levels = levels(batch_motifs_factor))
+    if (prev_scale_exists) p <- p + new_scale_fill()
+    p <- p +
+      geom_tile(data = data_6mA_batch_data, aes(x = Isolate, y = Motif, fill = Methylation_Score),
+                color = "grey", linewidth = 0.5) +
+      geom_tile(data = subset(data_6mA_batch_data, Border == "1"),
+                aes(x = Isolate, y = Motif), color = "black", linewidth = 1, fill = NA) +
+      scale_fill_gradient(low = "white", high = "red",
+                          name = "6mA Score", limits = c(0, 100), na.value = "grey")
+    prev_scale_exists <- TRUE
+  }
+  if (exists("data_4mC")) {
+    data_4mC_batch_data <- data_4mC[data_4mC$Motif %in% batch_motifs, ]
+    data_4mC_batch_data$Motif <- factor(data_4mC_batch_data$Motif, levels = levels(batch_motifs_factor))
+    if (prev_scale_exists) p <- p + new_scale_fill()
+    p <- p +
+      geom_tile(data = data_4mC_batch_data, aes(x = Isolate, y = Motif, fill = Methylation_Score),
+                color = "grey", linewidth = 0.5) +
+      geom_tile(data = subset(data_4mC_batch_data, Border == "1"),
+                aes(x = Isolate, y = Motif), color = "black", linewidth = 1, fill = NA) +
+      scale_fill_gradient(low = "white", high = "green",
+                          name = "4mC Score", limits = c(0, 100), na.value = "grey")
+  }
+  p <- suppressMessages(p + 
+                          labs(title = "Isolate / methylation (Cohort)", x = "Isolate", y = "Motif") +
+                          theme_minimal(base_size = 15) +
+                          theme(
+                            axis.text.x = element_text(angle = 90, hjust = 1, size = 25, color = "black", family = "Arial"),
+                            axis.text.y = element_text(color = "black", size = 25, family = "Arial"),
+                            plot.title = element_text(size = 25, face = "bold", color = "black", family = "Arial"),
+                            legend.text = element_text(size = 25, color = "black", family = "Arial"),   
+                            legend.title = element_text(size = 25, color = "black", family = "Arial"),
+                            plot.background = element_rect(fill = "white", color = NA),
+                            panel.background = element_rect(fill = "white", color = NA),
+                            panel.grid = element_blank()
+                          )+
+                          coord_fixed(ratio = 1))
+  panel_B_list[[i]] <- p 
+  ggsave(
+    file.path(Output_2,paste0("heatmap_Methylation_Score_Batch",i,"_.png")),
+    plot = p,
+    width = 10,
+    height = 10,
+    units = "in",
+    dpi = 300
+  )
+}
 
 path_beta_data = Output_2
 
@@ -705,27 +751,6 @@ significant_pairs <- beta_df[beta_df$beta_coefficient > 2.021, c("Enzyme", "Isol
 long_df_filtered <- semi_join(long_df, significant_pairs, by = c("Enzyme", "Isolate"))
 beta_df_filtered <- semi_join(beta_df, significant_pairs, by=c("Enzyme", "Isolate"))
 
-p <- suppressMessages(p + 
-  labs(title = "Target site recognition motifs methylation\n(all isolates)", x = "Isolate", y = "Motif") +
-  theme_minimal(base_size = 20) +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 25, color = "black", family = "Arial"),
-    axis.text.y = element_text(color = "black", size = 25, family = "Arial"),
-    axis.title.x = element_text(size = 25, face = "bold", color = "black", family = "Arial"),
-    axis.title.y = element_text(size = 25, face = "bold", color = "black", family = "Arial"),
-    plot.background = element_rect(fill = "white", color = NA),
-    panel.background = element_rect(fill = "white", color = NA),
-    legend.text = element_text(size = 25, color = "black", family = "Arial"),   
-    legend.title = element_text(size = 25, color = "black", family = "Arial"),
-    plot.title = element_text(size = 25, face = "bold", color = "black", family = "Arial"),
-    panel.grid = element_blank()
-  ) +
-  scale_y_discrete(limits = rev(motif_order))+
-  coord_fixed(ratio = 1))
-
-
-
-
 heatmap_data_matrix_new <- melt(heatmap_matrix1)
 colnames(heatmap_data_matrix_new) <- c("Enzyme", "Isolate", "Presence")
 
@@ -789,47 +814,49 @@ final_df <- final_df %>%
   mutate(E_value_clean = E_value,
          E_value_label = ifelse(is.na(E_value), "not found", NA))
 
-
-panel_A_ggplot <- ggplot(final_df, aes(x = Isolate, y = Grouped_name, fill = E_value)) +
-  geom_tile(data = final_df, aes(x = Isolate, y = Grouped_name, fill = E_value), 
-            color = "black", linewidth = 0.5) +
- 
-           
- 
-  scale_fill_gradient(
-    low = "lightblue",  
-    high = "blue", 
-    na.value = NA,
-    labels = scales::label_scientific(digits = 3),
-    name = "E-value",
-    guide = guide_colorbar(order = 1)
-  ) +
-  ggnewscale::new_scale_fill() +
-  geom_tile(data = filter(final_df, is.na(E_value_clean)),
-  aes(fill = E_value_label),
-  color = "black", linewidth = 0.5) +
-  scale_fill_manual(
-    values = c("not found" = "grey"),
-    name = "",
-    guide = guide_legend(order = 2, override.aes = list(color = "black")))+
-  theme(legend.text = element_text(size = 14))+
-  labs(title = "Candidate methylase presence\n(all isolates)", size = 20, x = "Isolate", y = "Methylase") +
-  theme_minimal(base_size = 15) + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 25, color = "black", family = "Arial"),  
-    axis.text.y = element_text(size = 25, color = "black", family = "Arial"),
-    plot.background = element_rect(fill = "white", color = NA),
-    panel.background = element_rect(fill = "white", color = NA),
-    panel.grid = element_blank(),
-    plot.title = element_text(size = 30, face = "bold", color = "black", family = "Arial"),
-    legend.position = "right",
-    legend.text = element_text(size = 25, color = "black", family = "Arial"),   
-    legend.title = element_text(size = 25, color = "black", family = "Arial"),
-    axis.title = element_text(size = 25, family = "Arial", face = "bold", color = "black")
-  ) +
-  coord_fixed(ratio = 1)
-
-
+Panel_A_list <- vector("list",n_batches)
+for (i in 1:n_batches) {
+  cat("[INFO] working on batch", i,"...")
+  batch_motifs <- unique_motifs[((i-1)*batch_size + 1) : min(i*batch_size, n_motifs)]
+  final_df_batched <- final_df[final_df$marked_motif %in% batch_motifs, ]
+  
+  panel_A_ggplot <- ggplot(final_df_batched, aes(x = Isolate, y = Grouped_name, fill = E_value)) +
+    geom_tile(data = final_df_batched, aes(x = Isolate, y = Grouped_name, fill = E_value), 
+              color = "black", linewidth = 0.5) +
+    scale_fill_gradient(
+      low = "lightblue",  
+      high = "blue", 
+      na.value = NA,
+      labels = scales::label_scientific(digits = 3),
+      name = "E-value",
+      guide = guide_colorbar(order = 1)
+    ) +
+    ggnewscale::new_scale_fill() +
+    geom_tile(data = filter(final_df_batched, is.na(E_value_clean)),
+              aes(fill = E_value_label),
+              color = "black", linewidth = 0.5) +
+    scale_fill_manual(
+      values = c("not found" = "grey"),
+      name = "",
+      guide = guide_legend(order = 2, override.aes = list(color = "black")))+
+    theme(legend.text = element_text(size = 14))+
+    labs(title = "Candidate methylase presence\n(all isolates)", size = 20, x = "Isolate", y = "Methylase") +
+    theme_minimal(base_size = 15) + 
+    theme(
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 25, color = "black", family = "Arial"),  
+      axis.text.y = element_text(size = 25, color = "black", family = "Arial"),
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 25, face = "bold", color = "black", family = "Arial"),
+      legend.position = "right",
+      legend.text = element_text(size = 25, color = "black", family = "Arial"),   
+      legend.title = element_text(size = 25, color = "black", family = "Arial"),
+      axis.title = element_text(size = 25, family = "Arial", face = "bold", color = "black")
+    ) +
+    coord_fixed(ratio = 1)
+  Panel_A_list[[i]] <- panel_A_ggplot
+}
 isolates <- unique(long_df_filtered$Isolate)
 for (isolate in isolates) {
   
@@ -878,55 +905,57 @@ for (isolate in isolates) {
     mutate(beta_coefficient = ifelse(beta_coefficient < 0.1, 0, beta_coefficient)) %>%
     distinct(Grouped_Enzyme, .keep_all = TRUE)
   
-  
-  heatmap_plot <- ggplot() +
-    geom_tile(data = df_look, aes(x = Motif.x, y = Grouped_Enzyme, fill = factor(AdjustedBinary)), color = "grey") + 
-    geom_text(data = df_look, aes(x = Motif.x, y = Grouped_Enzyme, label = AdjustedBinary), color = "black", size = 15) +
-    scale_fill_manual(values = c("0" = "white", "1" = "lightblue"), labels = c("0" = "No Presence", "1" = "Presence")) +
-    theme_minimal(base_size = 15) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size =15, color = "black", family = "Arial"), 
-          axis.title = element_blank(),
-          panel.spacing = unit(2, "lines")) +
-    labs(title = paste("Enzyme activity in isolate", isolate), fill = "Presence_Indicator") +
-    scale_y_discrete(labels = function(x) gsub('"', '', x)) +
-    theme(axis.text.x = element_blank(), axis.text.y = element_blank(), legend.position = "none", plot.title = element_text(size = 25, face = "bold", color = "black", family = "Arial"))
-  
-  
-  barplot_plot <- ggplot(data = df_look_beta, aes(x = Grouped_Enzyme, y = beta_coefficient)) +
-    geom_bar(stat = "identity", fill = "lightgreen", color = "black", width = 0.7) +
-    scale_y_reverse() +
-    coord_flip() +
-    scale_x_discrete() + 
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 25, color = "black", family = "Arial"), axis.text.y = element_text(size=25, color = "black", family = "Arial"), axis.title.y = element_blank(),
-          plot.title= element_blank(), axis.title.x = element_text(size=25 , face = "bold", color = "black", family = "Arial", hjust = 0))+
-    labs(y = "Enzyme activity(beta)")
-  
-  
-  barplot_plot_score <- ggplot(data = filtered_score_Data, aes(x = Motif, y = Methylation_Score)) +
-    geom_bar(stat = "identity", fill = "pink", color = "black", width = 0.7) +
-    theme_minimal() +
-    scale_y_reverse(limits = c(100, 0)) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 25, color = "black", family = "Arial"),
-          axis.title.y = element_text(size=25, face= "bold", color = "black", family = "Arial", hjust = 1),
-          axis.text.y = element_text(size=25),
-          axis.title.x = element_blank(),
-          plot.title = element_blank()) +
-    labs(y = "Average methylation Score")
-  
-  
-  top_row <- (barplot_plot + heatmap_plot) + plot_layout(widths = c(1, 3))
-  bottom_row <- (plot_spacer() + barplot_plot_score) + plot_layout(widths = c(1, 3.5))
-  combined_plot <- top_row / bottom_row + plot_layout(heights = c(2, 1))
-  
-  panel_B <- p
-  
-  final_plot <- (panel_A_ggplot + panel_B) / combined_plot 
-  
-  
-  
-  final_plot
-  
-
-  ggsave(file.path(Output_2,paste0("multipanel_plot", "_", isolate ,".png")), plot = final_plot, height = 20, width = 30, units = "in")
+  for (i in 1:n_batches) {
+    cat("[INFO] working on batch", i,"...")
+    batch_motifs <- unique_motifs[((i-1)*batch_size + 1) : min(i*batch_size, n_motifs)]
+    df_look_batched <- df_look[df_look$Motif.x %in% batch_motifs, ]
+    df_look_beta_batched <- df_look_beta[df_look_beta$Enzyme %in% df_look_batched$Enzyme, ]
+    filtered_score_Data_batched <- na.omit(filtered_score_Data[filtered_score_Data$Motif %in% batch_motifs, ])
+    
+    heatmap_plot <- ggplot() +
+      geom_tile(data = df_look_batched, aes(x = Motif.x, y = Grouped_Enzyme, fill = factor(AdjustedBinary)), color = "grey") + 
+      geom_text(data = df_look_batched, aes(x = Motif.x, y = Grouped_Enzyme, label = AdjustedBinary), color = "black", size = 12) +
+      scale_fill_manual(values = c("0" = "white", "1" = "lightblue"), labels = c("0" = "No Presence", "1" = "Presence")) +
+      theme_minimal(base_size = 15) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size =15, color = "black", family = "Arial"), 
+            axis.title = element_blank(),
+            panel.spacing = unit(2, "lines")) +
+      labs(title = paste("Enzyme activity in isolate", isolate), fill = "Presence_Indicator") +
+      scale_y_discrete(labels = function(x) gsub('"', '', x)) +
+      theme(axis.text.x = element_blank(), axis.text.y = element_blank(), legend.position = "none", plot.title = element_text(size = 25, face = "bold", color = "black", family = "Arial"))
+    
+    
+    barplot_plot <- ggplot(data = df_look_beta_batched, aes(x = Grouped_Enzyme, y = beta_coefficient)) +
+      geom_bar(stat = "identity", fill = "lightgreen", color = "black", width = 0.7) +
+      scale_y_reverse() +
+      coord_flip() +
+      scale_x_discrete() + 
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 25, color = "black", family = "Arial"), axis.text.y = element_text(size=25, color = "black", family = "Arial"), axis.title.y = element_blank(),
+            plot.title= element_blank(), axis.title.x = element_text(size=25 , face = "bold", color = "black", family = "Arial", hjust = 0))+
+      labs(y = "Enzyme activity(beta)")
+    
+    
+    barplot_plot_score <- ggplot(data = filtered_score_Data_batched, aes(x = Motif, y = Methylation_Score)) +
+      geom_bar(stat = "identity", fill = "pink", color = "black", width = 0.7) +
+      theme_minimal() +
+      scale_y_reverse(limits = c(100, 0)) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 25, color = "black", family = "Arial"),
+            axis.title.y = element_text(size=25, face= "bold", color = "black", family = "Arial", hjust = 1),
+            axis.text.y = element_text(size=25),
+            axis.title.x = element_blank(),
+            plot.title = element_blank()) +
+      labs(y = "Average methylation Score")
+    
+    
+    top_row <- (barplot_plot + heatmap_plot) + plot_layout(widths = c(1, 3))
+    bottom_row <- (plot_spacer() + barplot_plot_score) + plot_layout(widths = c(1, 3.5))
+    combined_plot <- top_row / bottom_row + plot_layout(heights = c(2, 1))
+    
+    
+    
+    final_plot <- (Panel_A_list[[i]] + panel_B_list[[i]]) / combined_plot 
+    final_plot
+    ggsave(file.path(Output_2,paste0("multipanel_plot", "_", isolate ,"batch_", i,".png")), plot = final_plot, height = 30, width = 30, units = "in")
+  }
 }

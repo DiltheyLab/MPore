@@ -157,6 +157,11 @@ def process_data(df):
             result_rows.append([enzyme, enzyme, motif, methyl_types[0], strands[0], positions[0]])
             result_rows.append([enzyme, enzyme, motif, methyl_types[1], strands[1], positions[1]])
 
+        elif len(positions) == 3 and positions[0].isdigit() and positions[1].isdigit() and positions[2].isdigit():
+            result_rows.append([enzyme, enzyme, motif, methyl_types[0], strands[0], positions[0]])
+            result_rows.append([enzyme, enzyme, motif, methyl_types[1], strands[1], positions[1]])
+            result_rows.append([enzyme, enzyme, motif, methyl_types[2], strands[2], positions[2]])
+            
     result_df = pd.DataFrame(result_rows, columns=['Enzyme', 'EnzymeUniqueMethylationActivity', 'Motif', 'MethylationType', 'Strand', 'Position'])
     return result_df
 
@@ -184,6 +189,7 @@ def parse_arguments():
     parser.add_argument('Input_dir', type=str, help='Path to input directory')
     parser.add_argument('output_dir', type=str, help='Output directory path')
     parser.add_argument('csv_list', type=str, help='Path to .csv file')
+    parser.add_argument('split_arg', type=lambda x: str(x).lower() == 'true', default=False, nargs='?', help='Enable split (True/False)')
     return parser.parse_args()
 def main():
     args = parse_arguments()
@@ -224,6 +230,8 @@ def main():
     mtase_presence_path=args.MTASE_FILE
     Mtase_presence = pd.read_csv(mtase_presence_path, sep=',', index_col=False)
     Mtase_presence = Mtase_presence.dropna(axis=1, how='all')
+    #Mtase_presence.columns = Mtase_presence.columns.str.replace(r"^S\.", "M.", regex=True)
+    #Mtase_presence = Mtase_presence.loc[:, ~Mtase_presence.columns.duplicated()]
 
     Big_list = []
     for df in dataframes_list:
@@ -316,39 +324,48 @@ def main():
     for isolate in x_values:
         contig_sequences = read_fasta(fasta_files[isolate])  
         isolate_positions = defaultdict(list)
-
+    
         seen_entries = defaultdict(set)
     
+        # Iterate through each contig
         for contig_name, contig_sequence in contig_sequences.items():
             for rowI in range(len(enzyme_presence_df)):
                 row_data = enzyme_presence_df.iloc[rowI].to_dict()
                 motif = row_data['Motif']
+                
+                if ',' in motif:
+                    motifs = motif.split(',')
+                else:
+                    motifs = [motif]
                 position = int(row_data['Position'])
                 strand = row_data['Strand']
-                cleaned_motif = motif.replace('"', '')
-                expanded_motif = expand_iupac(cleaned_motif)  
-                p = re.compile(expanded_motif)
-    
-                for m in p.finditer(contig_sequence):
-                    match_start_pos = m.start()
-                    if strand == "+":
-                        match_methylation_pos = match_start_pos + position - 1
-                    elif strand == "-":
-                        match_methylation_pos = match_start_pos + len(motif) - position
+                
+                for single_motif in motifs:
+                    cleaned_motif = single_motif.replace('"', '')
+                    expanded_motif = expand_iupac(cleaned_motif)  
+                    p = re.compile(f"(?=({expanded_motif}))")
+        
+                    for m in p.finditer(contig_sequence):
+                        match_start_pos = m.start()
+                        if strand == "+":
+                            match_methylation_pos = match_start_pos + position - 1
+                        elif strand == "-":
+                            match_methylation_pos = match_start_pos + len(motif) - position
+                        
+        
+                        if 0 <= match_methylation_pos < len(contig_sequence):
+                            row_data_with_contig = {**row_data, 'Contig': contig_name}
+                            entry_key = (
+                                row_data_with_contig['EnzymeUniqueMethylationActivity'],
+                                row_data_with_contig['Motif'],
+                                match_methylation_pos,
+                            )
+        
+                            if entry_key not in seen_entries[contig_name, match_methylation_pos]:
+                                isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
+                                seen_entries[contig_name, match_methylation_pos].add(entry_key)
                     
-                    if 0 <= match_methylation_pos < len(contig_sequence):
-                        row_data_with_contig = {**row_data, 'Contig': contig_name}
-    
-                        entry_key = (
-                            row_data_with_contig['EnzymeUniqueMethylationActivity'],
-                            row_data_with_contig['Motif'],
-                            match_methylation_pos,
-                        )
-    
-                        if entry_key not in seen_entries[contig_name, match_methylation_pos]:
-                            isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
-                            seen_entries[contig_name, match_methylation_pos].add(entry_key)
-    
+                    
         for (contig_name, pos), data_list in isolate_positions.items():
             contig_positions_dict[isolate][(contig_name, pos)].extend(data_list)
 
@@ -364,34 +381,38 @@ def main():
             for rowI in range(len(enzyme_presence_df)):
                 row_data = enzyme_presence_df.iloc[rowI].to_dict()
                 motif = row_data['Motif']
+                if ',' in motif:
+                    motifs = motif.split(',')
+                else:
+                    motifs = [motif]    
                 position = int(row_data['Position'])
                 strand = row_data['Strand']
-                
-                reverse_complement_motif = str(Seq(motif).reverse_complement())
-                
-                cleaned_motif = reverse_complement_motif.replace('"', '')
-                expanded_motif = expand_iupac(cleaned_motif)  
-                p = re.compile(expanded_motif)
-    
-                for m in p.finditer(contig_sequence):
-                    match_start_pos = m.start()
-                    if strand == "+":
-                        match_methylation_pos = match_start_pos + len(motif) - position
-                    elif strand == "-":
-                        match_methylation_pos = match_start_pos + position -1 
-    
-                    if 0 <= match_methylation_pos < len(contig_sequence):
-                        row_data_with_contig = {**row_data, 'Contig': contig_name}
-    
-                        entry_key = (
-                            row_data_with_contig['EnzymeUniqueMethylationActivity'],
-                            match_methylation_pos,
-                        )
-    
-                        if entry_key not in seen_entries[contig_name, match_methylation_pos]:
-                            isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
-                            seen_entries[contig_name, match_methylation_pos].add(entry_key)
-    
+                for single_motif in motifs:
+                    reverse_complement_motif = str(Seq(single_motif).reverse_complement())
+                    
+                    cleaned_motif = reverse_complement_motif.replace('"', '')
+                    expanded_motif = expand_iupac(cleaned_motif)  
+                    p = re.compile(f"(?=({expanded_motif}))")
+        
+                    for m in p.finditer(contig_sequence):
+                        match_start_pos = m.start()
+                        if strand == "+":
+                            match_methylation_pos = match_start_pos + len(motif) - position
+                        elif strand == "-":
+                            match_methylation_pos = match_start_pos + position -1 
+        
+                        if 0 <= match_methylation_pos < len(contig_sequence):
+                            row_data_with_contig = {**row_data, 'Contig': contig_name}
+        
+                            entry_key = (
+                                row_data_with_contig['EnzymeUniqueMethylationActivity'],
+                                match_methylation_pos,
+                            )
+        
+                            if entry_key not in seen_entries[contig_name, match_methylation_pos]:
+                                isolate_positions[(contig_name, match_methylation_pos)].append(row_data_with_contig)
+                                seen_entries[contig_name, match_methylation_pos].add(entry_key)
+                    
         for (contig_name, pos), data_list in isolate_positions.items():
             contig_positions_dict_1[isolate][(contig_name, pos)].extend(data_list)
         
@@ -455,7 +476,7 @@ def main():
             updated_dict[key] = updated_df
     output_dir=args.output_dir
     serializable_dict = {key: df.to_dict(orient='records') for key, df in updated_dict.items()}
-    split_log = os.getenv("SPLIT", "").lower() == "true"
+    split_log = args.split_arg
     
     if split_log:
      keys = list(serializable_dict.keys())

@@ -5,6 +5,8 @@ library(tidyr)
 args <- commandArgs(trailingOnly = TRUE)
 output_dir <- args[1]
 
+#output_dir <- "/Users/azlannisar/Desktop/mount/ONT_Meth_data/Output/"
+
 files <- list.files(output_dir, pattern = "_blast_results.txt$", full.names = TRUE)
 data_list <- list()
 Work_List <- list()
@@ -119,6 +121,18 @@ for (iso in Isolates) {
       distinct(Enzyme, Isolate, .keep_all = TRUE)
   }
 }
+
+idx <- grepl("^S\\.", all_results$Enzyme) & !(sub("^S\\.", "M.", all_results$Enzyme) %in% all_results$Enzyme)
+
+all_results$Enzyme[idx] <- sub("^S\\.", "M.", all_results$Enzyme[idx])
+
+cols <- names(enzyme_presence_df_2)
+M_set <- cols[grepl("^M\\.", cols)]
+
+idx <- grepl("^S\\.", cols) & !(sub("^S\\.", "M.", cols) %in% cols)
+cols[idx] <- sub("^S\\.", "M.", cols[idx])
+colnames(enzyme_presence_df_2) <- cols
+
 if (nrow(all_results) > 0) {
   write.xlsx(all_results, file.path(output_dir, "All_Isolates_gene_loci.xlsx"))
   write.csv(all_results, file.path(output_dir, "All_Isolates_gene_loci.csv"), row.names = FALSE)
