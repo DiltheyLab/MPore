@@ -1,20 +1,23 @@
+configfile: "config.yaml"
 import os
 import pandas as pd
 
+os.makedirs("logs", exist_ok=True)
+
 # Load environment variables
-input_csv = os.getenv("INPUT_CSV")
-output_dir = os.getenv("OUTPUT_DIR")
-Dorado_path = os.getenv("DORADO_PATH")
-user_motif_list_path = os.getenv("USER_MOTIF_LIST") 	
-include_rebase_motifs = os.getenv("INCLUDE_REBASE_MOTIFS", "true").lower() == "true"
-os.environ["INCLUDE_REBASE_MOTIFS"] = str(include_rebase_motifs).lower()
-TSV_Enzyme = os.getenv("TSV_data")
-TSV_REBASE = os.getenv("TSV_REBASE_data")
-Split_Log=os.getenv("SPLIT")
-Heatmap=os.getenv("HEATMAP")
-context=os.getenv("CONTEXT")
+input_csv = config["input_csv"]
+output_dir = config["output_dir"]
+Dorado_path = config["dorado_path"]
+user_motif_list_path = config["user_motif_list"]
+TSV_Enzyme = config["tsv_data"]
+TSV_REBASE = config["tsv_rebase_data"]
+Split_Log = config["split"]
+Heatmap = config["heatmap"]
+Log_analysis = config["log_analysis"]
+MODE = config["mode"]
 with open(user_motif_list_path, 'r') as file:
     user_motifs = [line.strip() for line in file if line.strip() and not line.strip().isdigit()]
+
 Log_analysis=os.getenv("Log_analysis", "True")
 data = pd.read_csv(input_csv)
 input_base = os.path.splitext(os.path.basename(input_csv))[0]
@@ -73,18 +76,27 @@ rule run_python_script:
     output:
         updated_csv
     params:
-        skip_update=False
+        skip_update=False,
+        input_csv=input_csv,
+        output_dir=output_dir
+    log:
+        "logs/run_python_script.log"
     shell:
         """
+        set -o pipefail
+        echo "[INFO] Starting run_python_script at $(date)" | tee -a {log}
+
         if [ "{params.skip_update}" = "True" ] && [ -e {output} ]; then
-            echo "Skipping update as {output} already exists. If u want to update remove the flag skip_update";
+            echo "[INFO] Skipping update as {output} already exists. If u want to update remove the flag skip_update" | tee -a {log};
         else
-            python Skripts/Check_python_snaky.py {input} {output}
+            echo "[INFO] Running Update_Csv_file.py..." | tee -a {log}
+            python Skripts/Update_input_csv.py {params.input_csv} {params.output_dir} 2>&1 | tee -a {log}
+            echo "[INFO] Update_CSV_file.py sucessfully finished at $(date)" | tee -a {log}
         fi
         """
 rule run_prokka_analysis:
     conda:
-        "environment.yaml"
+        "Environments/Prokka_env.yaml"
     input:
         input_csv
     output:
@@ -93,27 +105,37 @@ rule run_prokka_analysis:
         output_dir=output_dir,
         Ref_path=lambda wildcards: data[data['File_name'] == wildcards.file_name].iloc[0]['Reference_path'],
         proteins_db="./REBASE_proteins_goldset.fasta"
+    log:
+        "logs/run_prokka_analysis_{file_name}.log"
     shell:
         """
-        prokka --outdir {output} --prefix {wildcards.file_name} --force --proteins {params.proteins_db} {params.Ref_path}
+        set -o pipefail
+        echo "[INFO] Starting Prokka analysis at $(date)" | tee -a {log}
+        prokka --outdir {output} --prefix {wildcards.file_name} --force --proteins {params.proteins_db} {params.Ref_path} 2>&1 | tee -a {log}
+        echo "[INFO] Prokka analysis sucessfully finished at $(date)" | tee -a {log}
         """
 rule run_blastp_analysis:
     conda:
-        "environment.yaml"
+        "Environments/Blastp_env.yaml"
     input:
         prokka_dir=os.path.join(output_dir, "{file_name}")
     output:
         os.path.join(output_dir, "{file_name}_blast_results.txt")
     params:
         BLAST_OUTDIR=output_dir
+    log:
+        "logs/run_blastp_analysis_{file_name}.log"
     shell:
         """
-        blastp -query "{input.prokka_dir}/{wildcards.file_name}.faa" -db ./gold_standard_db -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore" -out {output}
+        set -o pipefail
+        echo "[INFO] Starting blastp analysis at $(date)" | tee -a {log}
+        blastp -query "{input.prokka_dir}/{wildcards.file_name}.faa" -db ./gold_standard_db -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore" -out {output} 2>&1 | tee -a {log}
         printf "Gene\tEnzyme\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\n" | cat - {output} > temp && mv temp {output}
+        echo "[INFO] blastp analysis sucessfully finished at $(date)" | tee -a {log}
         """
 rule run_create_Blast_Dataframe:
     conda:
-        "environment.yaml"
+        "Environments/Create_blast_env.yaml"
     input:
         blast_results= expand(os.path.join(output_dir, "{file_name}_blast_results.txt"), file_name=data['File_name'].tolist())
     output:
@@ -121,13 +143,18 @@ rule run_create_Blast_Dataframe:
         mtase_file_path=os.path.join(output_dir, "Mtase_presence_e_25_values.csv")
     params:
         OUTDIR=output_dir
+    log:
+        "logs/run_create_Blast_Dataframe.log"
     shell:
         """
-        Rscript ./Skripts/Create_Blast_DF.R  {params.OUTDIR}
+        set -o pipefail
+        echo "[INFO] listing Blast results into table at $(date)" | tee -a {log}
+        Rscript ./Skripts/Create_Blast_DF.R  {params.OUTDIR} 2>&1 | tee -a {log}
+        echo "[INFO] Done listing blast results" | tee -a {log}
         """
 rule run_dorado:
     conda:
-        "environment.yaml"
+        "Environments/dorado_env.yaml"
     input:
         csv_file=updated_csv,
         dorado_path=Dorado_path
@@ -139,21 +166,29 @@ rule run_dorado:
         reference_path=lambda wildcards: data[data['File_name'] == wildcards.file_name].iloc[0]['Reference_path'],
         pod5_path=lambda wildcards: data[data['File_name'] == wildcards.file_name].iloc[0]['pod5_path'],
         skip_dorado=False
+    log:
+        "logs/run_dorado_{file_name}.log"
     resources:
         dorado=1
     shell:
         """
+        set -o pipefail
+        echo "[INFO] Starting dorado rule at $(date)" | tee -a {log} 
         if [ -e {output.bam} ] && [ -e {output.sorted_bam} ] && [ -e {output.bai} ]; then
-            echo "Skipping {wildcards.file_name} since BAM file already exists.";
+            echo "Skipping {wildcards.file_name} since BAM file already exists." | tee -a {log};
         else
+            echo "[INFO] Starting dorado run for {params.pod5_path} at $(date)" | tee -a {log}
             PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:50 {input.dorado_path}/bin/dorado basecaller \
             --modified-bases-models {input.dorado_path}/lib/dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1,{input.dorado_path}/lib/dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1 \
             {input.dorado_path}/lib/dna_r10.4.1_e8.2_400bps_hac@v5.0.0 \
             {params.pod5_path} \
-            --reference {params.reference_path} > {output.bam}
+            --reference {params.reference_path} > {output.bam} 2> >(tee -a {log} >&2)
 
-            samtools sort -o {output.sorted_bam} {output.bam}
-            samtools index {output.sorted_bam}
+            echo "[INFO] starting sorting process for {output.bam} at $(date)" | tee -a {log}
+            samtools sort -o {output.sorted_bam} {output.bam} 2> >(tee -a {log} >&2)
+            echo "[INFO] starting indexing process for {output.sorted_bam} at $(date)" | tee -a {log}
+            samtools index {output.sorted_bam} 2> >(tee -a {log} >&2)
+            echo "[INFO] dorado run for {params.pod5_path} successfully finished at $(date)" | tee -a {log}
         fi
         """
 rule check_dorado_completion:
@@ -161,8 +196,11 @@ rule check_dorado_completion:
         bam_files
     output:
         flag=os.path.join(output_dir, "all_dorado_done.flag")
+    log:
+        "logs/check_dorado.log"
     shell:
         """
+        set -o pipefail 
         all_files_exist=true
         for bam_file in {input}; do
             if [ ! -e $bam_file ]; then
@@ -174,13 +212,13 @@ rule check_dorado_completion:
         if [ "$all_files_exist" = true ]; then
             touch {output.flag}
         else
-            echo "One or more BAM files are missing. Cannot mark Dorado as complete."
+            echo "One or more BAM files are missing. Cannot mark Dorado as complete." | tee -a {log}
             exit 1
         fi
         """
 rule run_modkit:
     conda:
-        "environment.yaml"
+        "Environments/Modkit_env.yaml"
     input:
         bam_files=rules.check_dorado_completion.output,
         csv_file=updated_csv
@@ -190,17 +228,23 @@ rule run_modkit:
         reference_path=lambda wildcards: data[data['File_name'] == wildcards.file_name].iloc[0]['Reference_path'],
         bam_path=lambda wildcards: pd.read_csv(updated_csv).loc[pd.read_csv(updated_csv)['File_name'] == wildcards.file_name, 'Bam_data'].iloc[0],
         skip_modkit=False
+    log:
+       "logs/run_modkit_{file_name}.log"
     shell:
         """
+        set -o pipefail
+        echo "[INFO] Starting the Modkit rule at $(date)" | tee -a {log}
         if [ "{params.skip_modkit}" = "True" ]; then
-            echo "Skipping {wildcards.file_name} due to skip_modkit flag."
+            echo "[INFO] Skipping {wildcards.file_name} due to skip_modkit flag." | tee -a {log}
             exit 0
         fi
 
         if [ -e {output[0]} ]; then
-            echo "Skipping {wildcards.file_name} since the BED file already exists."
+            echo "[INFO] Skipping {wildcards.file_name} since the BED file already exists." | tee -a {log}
         else
-            modkit pileup {params.bam_path} {output[0]} --ref {params.reference_path}
+            echo "[INFO] starting Modkit process for {params.bam_path} at $(date)" | tee -a {log}
+            modkit pileup {params.bam_path} {output[0]} --ref {params.reference_path} 2> >(tee -a {log} >&2)
+            echo "[INFO] Modkit process for {output[0]} finished successfully at $(date)" | tee -a {log} 
         fi
         """
 rule check_modkit_completion:
@@ -208,8 +252,11 @@ rule check_modkit_completion:
         bed_files
     output:
         os.path.join(output_dir, "all_modkit_done.flag")
+    log:
+        "logs/run_modkit.log"
     shell:
         """
+        set -o pipefail
         all_files_exist=true
         for bed_file in {input}; do
             if [ ! -e $bed_file ]; then
@@ -221,13 +268,13 @@ rule check_modkit_completion:
         if [ "$all_files_exist" = true ]; then
             touch {output}
         else
-            echo "One or more BED files are missing. Cannot mark Modkit as complete."
+            echo "[INFO] One or more BED files are missing. Cannot mark Modkit as complete." | tee -a {log}
             exit 1
         fi
         """
 rule run_6mA_analysis_script:
     conda:
-        "environment.yaml"
+        "Environments/run_analysis_env.yaml"
     input:
         csv_list=rules.run_python_script.output,
         motif_list=user_motif_list_path,
@@ -242,9 +289,14 @@ rule run_6mA_analysis_script:
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         tsv=TSV_Enzyme,
         RB_Motifs=TSV_REBASE
+    log:
+        "logs/run_6mA_analysis_{file_name}.log"
     shell:
         """
-        python Skripts/Run_analysis6mA.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.RB_Motifs}
+        set -o pipefail
+        echo "[INFO] finding 6mA hits at $(date)" | tee -a {log}
+        python Skripts/Run_analysis6mA.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.tsv} 2>&1 | tee -a {log}
+        echo "[INFO] 6mA analysis for {input.csv_list} successfully finished at $(date)"
         """
 
 rule check_6mA_completion:
@@ -252,8 +304,11 @@ rule check_6mA_completion:
         sample_df_files  
     output:
         flag=os.path.join(output_dir, "all_6mA_done.flag")  # Flag file to indicate completion
+    log:
+       "logs/checks_6mA_finished.log"
     shell:
         """
+        set -o pipefail
         all_files_exist=true
         for sample_df_file in {input}; do
             if [ ! -e $sample_df_file ]; then
@@ -265,14 +320,14 @@ rule check_6mA_completion:
         if [ "$all_files_exist" = true ]; then
             touch {output.flag}  
         else
-            echo "One or more Sample DF detailed files are missing. Cannot mark 6mA as complete."
+            echo "One or more Sample DF detailed files are missing. Cannot mark 6mA as complete." | tee -a {log}
             exit 1
         fi
         """
 
 rule run_4mC_analysis_script:
     conda:
-        "environment.yaml"
+        "Environments/run_analysis_env.yaml"
     input:
         csv_list=rules.run_python_script.output,
         motif_list=user_motif_list_path,
@@ -285,20 +340,27 @@ rule run_4mC_analysis_script:
     params:
         output_dir=output_dir,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
-        tsv=TSV_Enzyme,
-        RB_Motifs=TSV_REBASE
+        tsv=TSV_Enzyme
+    log:
+       "logs/run_4mC_analysis_{file_name}.log"
     shell:
         """
-        python Skripts/Run_analysis4mC.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.RB_Motifs}
+        set -o pipefail
+        echo "[INFO] finding 4mC hits at $(date)" | tee -a {log}
+        python Skripts/Run_analysis4mC.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.tsv} 2>&1 | tee -a {log}
+        echo "[INFO] 4mC analysis for {input.csv_list} successfully finished at $(date)" | tee -a {log}
         """
 
 rule check_4mC_completion:
     input:
         sample_df_files_4mC  
     output:
-        flag=os.path.join(output_dir, "all_4mC_done.flag") 
+        flag=os.path.join(output_dir, "all_4mC_done.flag")
+    log:
+       "logs/checks_4mC_finished.log" 
     shell:
         """
+        set -o pipefail
         all_files_exist=true
         for sample_df_file in {input}; do
             if [ ! -e $sample_df_file ]; then
@@ -310,7 +372,7 @@ rule check_4mC_completion:
         if [ "$all_files_exist" = true ]; then
             touch {output.flag}  
         else
-            echo "One or more Sample DF detailed files are missing. Cannot mark 6mA as complete."
+            echo "One or more Sample DF detailed files are missing. Cannot mark 6mA as complete." | tee -a {log}
             exit 1
         fi
         """
@@ -330,7 +392,7 @@ rule create_plots_dir:
 
 rule run_5mC_analysis_script:
     conda:
-        "environment.yaml"
+        "Environments/run_analysis_env.yaml"
     input:
         csv_list=rules.run_python_script.output,
         motif_list=user_motif_list_path,
@@ -345,18 +407,26 @@ rule run_5mC_analysis_script:
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         tsv=TSV_Enzyme,
         RB_Motifs=TSV_REBASE
+    log:
+       "logs/run_5mC_analysis_{file_name}.log"
     shell:
         """
-        python Skripts/Run_analysis5mC.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.RB_Motifs}
+        set -o pipefail
+        echo "[INFO] finding 5mC hits at $(date)" | tee -a {log}
+        python Skripts/Run_analysis5mC.py {input.csv_list} {params.output_dir} {input.motif_list} {params.mtase} {params.tsv} {params.tsv} 2>&1 | tee -a {log}
+        echo "[INFO] 4mC analysis for {input.csv_list} successfully finished at $(date)" | tee -a {log}
         """
 
 rule check_5mC_completion:
     input:
         sample_df_files_5mC  
     output:
-        flag=os.path.join(output_dir, "all_5mC_done.flag")  # Flag file to indicate completion
+        flag=os.path.join(output_dir, "all_5mC_done.flag")
+    log:
+       "logs/checks_5mC_finished.log"
     shell:
         """
+        set -o pipefail
         all_files_exist=true
         for sample_df_file in {input}; do
             if [ ! -e $sample_df_file ]; then
@@ -368,14 +438,14 @@ rule check_5mC_completion:
         if [ "$all_files_exist" = true ]; then
             touch {output.flag}  
         else
-            echo "One or more Sample DF detailed files are missing. Cannot mark 5mC as complete."
+            echo "One or more Sample DF detailed files are missing. Cannot mark 5mC as complete." | tee -a {log}
             exit 1
         fi
         """
 
 rule Refinement_log_5mC:
     conda:
-        "environment.yaml"
+        "Environments/Workstation_env.yaml"
     input:
         csv_list=input_csv,
         check=os.path.join(output_dir, "all_5mC_done.flag")
@@ -384,21 +454,26 @@ rule Refinement_log_5mC:
     params:
         output_dir=output_dir,
         mtase_file=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
-        Log_analysis=config["Log_analysis"]
+        Log_analysis=Log_analysis,
+        Split=Split_Log
+    log:
+       "logs/Refinement_Regression_5mC.log"
     shell:
         """
+        set -o pipefail
         if [ "{params.Log_analysis}" = "True" ]; then
-            python ./Skripts/Workstation_last_feature_5mC.py {params.mtase_file} {params.output_dir} {params.output_dir} {input[0]};
-            
+            echo "[INFO] Mapping 5mC findings to genome at $(date)" | tee -a {log}
+            python ./Skripts/Workstation_last_feature_5mC.py {params.mtase_file} {params.output_dir} {params.output_dir} {input[0]} {params.Split} 2>&1 | tee -a {log};
+            echo " [INFO] finished mapping 5mC at $(date)" | tee -a {log}
             # Create the done.txt file to signal completion
             echo "Log_5mC_done" > {output}
         else
-            echo "Skipping analysis as Log_analysis is False."
+            echo "Skipping analysis as Log_analysis is False." | tee -a {log}
         fi
         """
 rule run_5mC_Regression:
     conda:
-        "environment.yaml"
+        "Environments/Loganalysis_isolate_env.yaml"
     input:
         input_csv,
         Refinement_log=os.path.join(output_dir, 'Log_5mC_done.txt')
@@ -409,19 +484,26 @@ rule run_5mC_Regression:
         tsv_rebase= TSV_REBASE,
         input_csv= input_csv,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv")
+    log:
+       "logs/5mC_Loganalysis.log"
     shell:
         """
+        set -o pipefail
         if [ "${{MODE:-1}}" -eq 2 ]; then
-            Rscript ./Skripts/Loganalysis_isolate_spec_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
+            echo "[INFO] starting with isolate specific loganalysis" | tee -a {log}
+            Rscript ./Skripts/Loganalysis_isolate_spec_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase} 2>&1 | tee -a {log}
+            echo "[INFO] isolate specific 5mC Loganalysis finished successfully at $(date)" | tee -a {log}
             echo "Regression_5mC_done in isolate mode" > {output}
         else
-            Rscript ./Skripts/Loganalysis_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
+            echo "[INFO] starting with cross isolate loganalysis" | tee -a {log}
+            Rscript ./Skripts/Loganalysis_5mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase} 2>&1 | tee -a {log}
+            echo "[INFO] cross isolate 5mC Loganalysis finished successfully at $(date)" | tee -a {log}
             echo "Regression_5mC_done in cross mode" > {output}
         fi
         """
 rule run_5mC_Plotting:
     conda:
-        "environment.yaml"
+        "Environments/plot_boxplot_env.yaml"
     input:
         input_csv,
         expand(os.path.join(output_dir, "Sample_DF_detailed_{file_name}_5mC.csv"), file_name=data['File_name'].tolist()),
@@ -433,14 +515,19 @@ rule run_5mC_Plotting:
         tsv_enzyme=TSV_Enzyme,
         mtase_file=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         Plot_out=os.path.join(output_dir, "plots_5mC")
+    log:
+       "logs/5mC_Boxplot.log"
     shell:
         """
-        python ./Skripts/5mC_Position_Plotting.py {params.mtase_file} {params.OUTDIR} {params.Plot_out} {input[0]}
+        set -o pipefail
+        echo "[INFO] starting 5mC plotting boxplot in {params.Plot_out} at $(date)"
+        python ./Skripts/5mC_Position_Plotting.py {params.mtase_file} {params.OUTDIR} {params.Plot_out} {input[0]} 2>&1 | tee -a {log}
+        echo "[INFO] 5mC plotting finished successfully at $(date)" | tee -a {log}
         echo "Plotting_5mC_done" > {output}
         """
 rule Refinement_log_6mA:
     conda:
-        "environment.yaml"
+        "Environments/Workstation_env.yaml"
     input:
         csv_list=input_csv,
         check=os.path.join(output_dir, "all_6mA_done.flag"),
@@ -450,21 +537,26 @@ rule Refinement_log_6mA:
     params:
         output_dir=output_dir,
         mtase_file=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
-        Log_analysis=config["Log_analysis"]
+        Log_analysis=Log_analysis,
+        Split=Split_Log
+    log: 
+       "logs/Refinement_Regression_6mA.log"
     shell:
         """
+        set -o pipefail
         if [ "{params.Log_analysis}" = "True" ]; then
-            python ./Skripts/Workstation_last_feature2.0.py {params.mtase_file} {params.output_dir} {params.output_dir} {input[0]};
-            
+            echo "[INFO] Mapping 5mC findings to genome at $(date)" | tee -a {log}
+            python ./Skripts/Workstation_last_feature_6mA.py {params.mtase_file} {params.output_dir} {params.output_dir} {input[0]} {params.Split} 2>&1 | tee -a {log};
+            echo " [INFO] finished mapping 6mA at $(date)" | tee -a {log}
             # Create the done.txt file to signal completion
             echo "Log_6mA_done" > {output}
         else
-            echo "Skipping analysis as Log_analysis is False."
+            echo "Skipping analysis as Log_analysis is False." | tee -a {log}
         fi
         """
 rule run_6mA_Regression:
     conda:
-        "environment.yaml"
+        "Environments/Loganalysis_isolate_env.yaml"
     input:
         input_csv,
         Refinement_log=os.path.join(output_dir, 'Log_6mA_done.txt'),
@@ -476,19 +568,26 @@ rule run_6mA_Regression:
         tsv_enzyme= TSV_REBASE,
         input_csv= input_csv,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv")
+    log:
+       "logs/6mA_Loganalysis.log"
     shell:
         """
+        set -o pipefail
         if [ "${{MODE:-1}}" -eq 2 ]; then
-            Rscript ./Skripts/Loganalysis_isolate_spec_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
+            echo "[INFO] starting with isolate specific 6mA loganalysis" | tee -a {log}
+            Rscript ./Skripts/Loganalysis_isolate_spec_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase} 2>&1 | tee -a {log}
+            echo "[INFO] isolate specific 6mA Loganalysis finished successfully at $(date)" | tee -a {log}
             echo "Regression_6mA_done in isolate mode" > {output}
         else
-            Rscript ./Skripts/Loganalysis_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
+            echo "[INFO] starting with 6mA cross isolate loganalysis" | tee -a {log}
+            Rscript ./Skripts/Loganalysis_6mA.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase} 2>&1 | tee -a {log}
+            echo "[INFO] cross isolate 6mA Loganalysis finished successfully at $(date)" | tee -a {log}
             echo "Regression_6mA_done in cross mode" > {output}
         fi
         """
 rule run_6mA_Plotting:
     conda:
-        "environment.yaml"
+        "Environments/plot_boxplot_env.yaml"
     input:
         input_csv,
         expand(os.path.join(output_dir, "Sample_DF_detailed_{file_name}_6mA.csv"), file_name=data['File_name'].tolist()),
@@ -501,38 +600,49 @@ rule run_6mA_Plotting:
         tsv_enzyme=TSV_Enzyme,
         mtase_file=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         Plot_out=os.path.join(output_dir, "plots_6mA")
+    log:
+       "logs/6mA_Boxplot.log"
     shell:
         """
-        python ./Skripts/6mA_Position_Plotting.py {params.mtase_file} {params.OUTDIR} {params.Plot_out} {input[0]}
+        set -o pipefail
+        echo "[INFO] starting 6mA plotting boxplot in {params.Plot_out} at $(date)"
+        python ./Skripts/6mA_Position_Plotting.py {params.mtase_file} {params.OUTDIR} {params.Plot_out} {input[0]} 2>&1 | tee -a {log}
+        echo "[INFO] 6mA plotting finished successfully at $(date)" | tee -a {log}
         echo "Plotting_6mA_done" > {output}
         """
 rule Refinement_log_4mC:
     conda:
-        "environment.yaml"
+        "Environments/Workstation_env.yaml"
     input:
         csv_list=input_csv,
         check=os.path.join(output_dir, "all_4mC_done.flag"),
         check2=os.path.join(output_dir, "6mA_Plotting_done.txt")
     output:
         os.path.join(output_dir, 'Log_4mC_done.txt')
+    log: 
+       "logs/Refinement_Regression_4mC.log"
     params:
         output_dir=output_dir,
         mtase_file=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
-        Log_analysis=config["Log_analysis"]
+        Log_analysis=Log_analysis,
+        Split=Split_Log
     shell:
         """
+        set -o pipefail
         if [ "{params.Log_analysis}" = "True" ]; then
-            python ./Skripts/Workstation_last_feature_4mC.py {params.mtase_file} {params.output_dir} {params.output_dir} {input[0]};
-            
+            echo "[INFO] Mapping 4mC findings to genome at $(date)" | tee -a {log}
+            python ./Skripts/Workstation_last_feature_4mC.py {params.mtase_file} {params.output_dir} {params.output_dir} {input[0]} {params.Split} 2>&1 | tee -a {log};
+            echo " [INFO] finished mapping 4mC at $(date)" | tee -a {log}
+            echo "Regression_4mC_done in isolate mode" > {output}
             # Create the done.txt file to signal completion
             echo "Log_4mC_done" > {output}
         else
-            echo "Skipping analysis as Log_analysis is False."
+            echo "Skipping analysis as Log_analysis is False." | tee -a {log}
         fi
         """
 rule run_4mC_Regression:
     conda:
-        "environment.yaml"
+        "Environments/Loganalysis_isolate_env.yaml"
     input:
         input_csv,
         Refinement_log=os.path.join(output_dir, 'Log_4mC_done.txt'),
@@ -544,19 +654,26 @@ rule run_4mC_Regression:
         tsv_enzyme= TSV_REBASE,
         input_csv= input_csv,
         mtase=os.path.join(output_dir, "Mtase_presence_e_25_values.csv")
+    log:
+       "logs/4mC_Loganalysis.log"
     shell:
         """
+        set -o pipefail
         if [ "${{MODE:-1}}" -eq 2 ]; then
-            Rscript ./Skripts/Loganalysis_isolate_spec_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
+            echo "[INFO] starting with isolate specific 4mC loganalysis" | tee -a {log}
+            Rscript ./Skripts/Loganalysis_isolate_spec_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase} 2>&1 | tee -a {log}
+            echo "[INFO] isolate specific 4mC Loganalysis finished successfully at $(date)" | tee -a {log}
             echo "Regression_4mC_done in isolate mode" > {output}
         else
-            Rscript ./Skripts/Loganalysis_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_rebase} {params.input_csv} {params.mtase}
+            echo "[INFO] starting with 4mC cross isolate loganalysis" | tee -a {log}
+            Rscript ./Skripts/Loganalysis_4mC.R {params.OUTDIR} {params.OUTDIR} {params.tsv_enzyme} {params.input_csv} {params.mtase} 2>&1 | tee -a {log}
+            echo "[INFO] cross isolate 6mA Loganalysis finished successfully at $(date)" | tee -a {log}
             echo "Regression_4mC_done in cross mode" > {output}
         fi
         """
 rule run_4mC_Plotting:
     conda:
-        "environment.yaml"
+        "Environments/plot_boxplot_env.yaml"
     input:
         input_csv,
         expand(os.path.join(output_dir, "Sample_DF_detailed_{file_name}_4mC.csv"), file_name=data['File_name'].tolist()),
@@ -569,15 +686,20 @@ rule run_4mC_Plotting:
         tsv_enzyme=TSV_Enzyme,
         mtase_file=os.path.join(output_dir, "Mtase_presence_e_25_values.csv"),
         Plot_out=os.path.join(output_dir, "plots_4mC")
+    log:
+       "logs/4mC_Boxplot.log"
     shell:
         """
-        python ./Skripts/4mC_Position_Plotting.py {params.mtase_file} {params.OUTDIR} {params.Plot_out} {input[0]}
+        set -o pipefail
+        echo "[INFO] starting 4mC plotting boxplot in {params.Plot_out} at $(date)"
+        python ./Skripts/4mC_Position_Plotting.py {params.mtase_file} {params.OUTDIR} {params.Plot_out} {input[0]} 2>&1 | tee -a {log}
+        echo "[INFO] 4mC plotting finished successfully at $(date)" | tee -a {log}
         echo "Plotting_4mC_done" > {output}
         """
 
 rule Heatmap_Plotting:
     conda:
-        "environment.yaml"
+        "Environments/Heatmap_env.yaml"
     input:
         Reg_done=os.path.join(output_dir, "4mC_Regression_done.txt"),
         Reg_done1=os.path.join(output_dir, "5mC_Regression_done.txt"),
@@ -586,15 +708,20 @@ rule Heatmap_Plotting:
         os.path.join(output_dir, "Heatmap_Plotting_done.txt")
     params:
         OUTDIR= output_dir.strip(),
-        Context= context,
-        gene_file=os.path.join(output_dir, "All_Isolates_gene_loci.csv")
+        gene_file=os.path.join(output_dir, "All_Isolates_gene_loci.csv"),
+        Heatmap = "TRUE" if Heatmap else "FALSE"
+    log:
+       "logs/Heatmap_plotting.log"
     shell:
         """
-        if [ "$HEATMAP" = "TRUE" ]; then
-            Rscript ./Skripts/Heatmap_Plots.R {params.OUTDIR} {params.Context} {params.gene_file}
+        set -o pipefail
+        if [ "{params.Heatmap}" = "TRUE" ]; then
+            echo "[INFO] starting Heatmap plotting at $(date)" | tee -a {log}
+            Rscript ./Skripts/Heatmap_Plots.R {params.OUTDIR} {params.gene_file} 2>&1 | tee -a {log}
+            echo "[INFO] Heatmap plotting finished successfully at $(date)" | tee -a {log}
             echo "Heatmap_plotting_done" > {output}
         else
-            echo "Heatmap not set to TRUE, skipping plotting."
+            echo "Heatmap not set to TRUE, skipping plotting." | tee -a {log}
             echo "skipped" > {output}
         fi
         """
