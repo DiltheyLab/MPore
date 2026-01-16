@@ -74,35 +74,63 @@ MPore is designed to run within a dedicated Conda environment.
 
 ## Initialization
 1. **Prepare the CSV file and user motif list**
-   
-After installation, move into the `MPore` Folder and create a CSV file containing the columns `File_name`, `Reference_Path` and `Pod5_path`. The first column is used as name in the downstream analysis for a isolate. An example for a CSV file would be
-For visualization purposes, it is recommended not to use overly long `File_names` entries. Also, avoid whitespace characters and instead use continuous strings
+After installation, navigate to the `MPore` directory and create a CSV file containing the following columns:
+- `File_name`
+- `Reference_path`
+- `pod5_path`
+The `File_name` column is used as the isolate identifier throughout the downstream analysis.
+
+For visualization and compatibility purposes, it is recommended to:
+- avoid overly long `File_name` entries,
+- avoid whitespace characters,
+- use continuous, descriptive strings instead  
+An example input CSV file is shown below:
 
 ```csv
 File_name,Reference_path,pod5_path
 12256U,/home/azlan/Myco_Data/ref/12256U.fasta,/home/azlan/Myco_Data/pod5s/12256U
 8958VA,/home/azlan/M_hominis/ref/8958VA.fasta,/home/azlan/Myco_Data/pod5s/8958VA
 ```
-Here, `File_name` corresponds to the isolates 12256U and 8958VA with their respective reference and POD5 paths. In is highly recommended to adjiust contig names in the reference files if needed. Cause whitespaces and extra characters inside the contig names do not work well with multiple tools used in the pipeline. An easy check could be 
+In this example, File_name corresponds to the isolates 12256U and 8958VA, each linked to their respective reference genome and POD5 directory.
+#### Reference contig name formatting  
+It is strongly recommended to verify and, if necessary, adjust contig names in the reference FASTA files.
+Whitespace characters or additional annotations in contig headers can cause issues with several tools used in the pipeline.
+A simple check of contig headers can be performed using:
 ```bash
 grep ">" 12256U.fasta
+```
+Example output:
+```bash
 >12256U Mycoplasma hominis, complete genome
 ```
-And an adjustment would look as following 
+A properly formatted contig header should contain only a single identifier.
+An example of how to reformat the FASTA file is shown below:
 ```bash
 zcat 12256U.fa.gz \ | awk '/^>/{print $1; next} {print}' \ > 12256U_formatted.fasta
+```
+Verification of the reformatted file:
+```bash
 grep ">" 12256U_formatted.fasta
+```
+Expected output:
+```bash
 >12256U 
 ```
-
-
-In addition to this CSV file, the user should also provide a text file containing motifs of interest.
-If no motifs are of interest, simply provide a text file with the following format:
-
+#### Motif list
+In addition to the input CSV file, the user must provide a text file containing DNA motifs of interest, with one motif per line.
+If no specific motifs are of interest, a dummy motif file can be provided, for example:
 ```motif-list
 GATC
 ```
-In this case, `GATC` will be used as a dummy motif.
+In this case, `GATC` will be used as a placeholder motif.
+By setting:
+```bash
+INCLUDE_REBASE_MOTIFS=true
+```
+all motifs associated with candidate methyltransferases will be included in the analysis in addition to the user-defined motifs.
+#### Note: An empty motif file must not be used as input.
+
+
 By setting `INCLUDE_REBASE_MOTIFS=true`, all motifs of the candidate methyltransferases will be considered in addition to `GATC`.
 *An empty motif file should not be used as input.*
 
