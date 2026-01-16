@@ -73,7 +73,7 @@ MPore is designed to run within a dedicated Conda environment.
    cd MPore
 
 ## Initialization
-1. **Prepare the CSV file and user motif list**
+1. **Prepare the CSV file and user motif list**  
 After installation, navigate to the `MPore` directory and create a CSV file containing the following columns:
 - `File_name`
 - `Reference_path`
