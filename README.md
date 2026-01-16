@@ -61,7 +61,7 @@ dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1
 For detailed installation instructions, please refer to the official Dorado documentation.
 
 ## Installation 
-1. **Create a Conda environment**
+1. **Create a Conda environment**  
 MPore is designed to run within a dedicated Conda environment.
    ```bash
    conda create -c conda-forge -c bioconda -n Bacterial_context1 snakemake=8.20.5
