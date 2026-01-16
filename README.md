@@ -38,9 +38,9 @@ If Dorado was installed using the self-contained release, ensure that the requir
 ```
 The following models must be available:
 ```bash
-- dna_r10.4.1_e8.2_400bps_hac@v5.0.0
-- dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1
-- dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1
+dna_r10.4.1_e8.2_400bps_hac@v5.0.0
+dna_r10.4.1_e8.2_400bps_hac@v5.0.0_6mA@v1
+dna_r10.4.1_e8.2_400bps_hac@v5.0.0_4mC_5mC@v1
 ```
 You can locate your Dorado installation with:
 ```bash
