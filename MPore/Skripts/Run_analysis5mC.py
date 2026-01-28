@@ -43,7 +43,7 @@ def split_and_filter_motifs(motif_list) :
             continue 
         for m in motif.split(","):
             m = m.strip()
-            if len(m) > 3 and re.fullmatch(r"[ACGTN]+", m):
+            if len(m) > 3 and re.fullmatch(r"[ACGTNRYSWKMBDHVN]+", m):
                 if m not in seen:
                     clean_motifs.append(m)
                     seen.add(m)
