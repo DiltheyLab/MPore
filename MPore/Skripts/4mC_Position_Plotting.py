@@ -247,7 +247,7 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
         )
 
         # === Boxplot ===
-        ax_box.boxplot(scores, labels=x_values, showfliers=False)
+        ax_box.boxplot(scores, tick_labels=x_values, showfliers=False)
         ax_box.set_xlabel('Isolates', fontsize=14)
         ax_box.set_ylabel('Score', fontsize=14)
         ax_box.set_ylim(0, 110)

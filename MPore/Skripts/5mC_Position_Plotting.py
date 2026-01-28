@@ -600,12 +600,12 @@ def main():
 
     enzyme_position_count_df = count_enzyme_positions_for_motifs_fixed(combined_contig_positions_dict, dataframes_list, x_values)
     
-    All_isolate_gene_path = os.path.join(args.output_dir, "All_Isolates_gene_loci.csv")
+    All_isolate_gene_path = os.path.join(args.Input_dir, "All_Isolates_gene_loci.csv")
     All_isolate_gene_df = pd.read_csv(All_isolate_gene_path)
     
     
     
-    create_boxplots_with_data(dataframes_list, x_values, combined_contig_positions_dict, enzyme_position_count_df, Log_Results_df, args.output_dir)
+    create_boxplots_with_data(dataframes_list, x_values, combined_contig_positions_dict, enzyme_position_count_df, Log_Results_df, args.output_dir, All_isolate_gene_df)
 
 if __name__ == "__main__":
     main()

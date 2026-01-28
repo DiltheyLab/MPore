@@ -240,7 +240,7 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
                             collected_data.append(new_entry)
 
         fig_width = max(12, len(x_values) * 2.2)
-        num_enzyme_rows = len(enzyme_count_df['Gene'].unique())
+        num_enzyme_rows = len(enzyme_count_df['Enzyme'].unique())
         fig_height = max(10, num_enzyme_rows * 0.2)
 
         fig, (ax_box, ax_table) = plt.subplots(
@@ -251,7 +251,7 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
         )
 
         # === Boxplot ===
-        ax_box.boxplot(scores, labels=x_values, showfliers=False)
+        ax_box.boxplot(scores, tick_labels=x_values, showfliers=False)
         ax_box.set_xlabel('Isolates', fontsize=14)
         ax_box.set_ylabel('Score', fontsize=14)
         ax_box.set_ylim(0, 110)
@@ -355,12 +355,12 @@ iupac_to_regex = {
 def main():
     args = parse_arguments()
     directory = args.Input_dir
-    #directory ="/Users/azlannisar/Desktop/mount/Nanomotif_data/Outpu"
+    #directory ="/Users/azlannisar/Desktop/mount3/Nanomotif_data/Outpu"
     csv_file_path = args.csv_list
-    #csv_file_path ="/Users/azlannisar/Desktop/mount/M_hominis_Rho/MPore/Data_Test.csv"
+    #csv_file_path ="/Users/azlannisar/Desktop/mount3/M_hominis_Rho/MPore/Data_Test.csv"
     data_df = pd.read_csv(csv_file_path, names=["File_name", "Reference_path", "pod5_path"], skiprows=1, index_col=False)
     file_names = set(data_df["File_name"].astype(str))
-
+    #data_df['Reference_path'] = data_df['Reference_path'].str.replace("/mnt/azlan/", "/Users/azlan/Desktop/mount3/", regex=False)
     matched_files_5mC = glob.glob(os.path.join(directory, '*_detailed_*_6mA.csv'))
     dataframes_list = []
     for file_path in matched_files_5mC:
@@ -376,7 +376,7 @@ def main():
     
     
     mtase_presence_path = args.MTASE_FILE
-    #mtase_presence_path = "/Users/azlannisar/Desktop/mount/Nanomotif_data/Outpu/Mtase_presence_e_25_values.csv"
+    #mtase_presence_path = "/Users/azlannisar/Desktop/mount3/Nanomotif_data/Outpu/Mtase_presence_e_25_values.csv"
     Mtase_presence = pd.read_csv(mtase_presence_path, sep=',', index_col=False)
     Mtase_presence = Mtase_presence[Mtase_presence["Isolates"].isin(file_names)]
     Mtase_presence = Mtase_presence.dropna(axis=1, how='all')
@@ -564,7 +564,7 @@ def main():
             combined_contig_positions_dict[isolate][(contig_name, pos)].extend(data_list) 
     enzyme_position_count_df = count_enzyme_positions_for_motifs_fixed(combined_contig_positions_dict, dataframes_list, x_values)
 
-    All_isolate_gene_path = os.path.join(args.output_dir, "All_Isolates_gene_loci.csv")
+    All_isolate_gene_path = os.path.join(args.Input_dir, "All_Isolates_gene_loci.csv")
     All_isolate_gene_df = pd.read_csv(All_isolate_gene_path)
     
     #enzyme_position_count_df = enzyme_position_count_df.merge(
