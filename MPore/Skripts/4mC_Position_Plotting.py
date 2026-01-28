@@ -304,7 +304,7 @@ def create_boxplots_with_data(dataframes_list, x_values, contig_positions_dict, 
             unique_data = unique_data.dropna(subset=["Gene"]).reset_index(drop=True)
             unique_data = (unique_data.groupby("Gene", as_index=False).first())
             unique_data = unique_data.drop(columns=["Gene"])
-            unique_data = unique_data.drop_duplicates().rest_index(drop=True)
+            unique_data = unique_data.drop_duplicates().reset_index(drop=True)
             
             table_data = unique_data.values
             col_labels = unique_data.columns
@@ -546,10 +546,10 @@ def main():
             combined_contig_positions_dict[isolate][(contig_name, pos)].extend(data_list) 
     enzyme_position_count_df = count_enzyme_positions_for_motifs_fixed(combined_contig_positions_dict, dataframes_list, x_values)
     
-    All_isolate_gene_path = os.path.join(args.output_dir, "All_Isolates_gene_loci.csv")
+    All_isolate_gene_path = os.path.join(args.Input_dir, "All_Isolates_gene_loci.csv")
     All_isolate_gene_df = pd.read_csv(All_isolate_gene_path)
     
-    create_boxplots_with_data(dataframes_list, x_values, combined_contig_positions_dict, enzyme_position_count_df, Log_Results_df, args.output_dir)
+    create_boxplots_with_data(dataframes_list, x_values, combined_contig_positions_dict, enzyme_position_count_df, Log_Results_df, args.output_dir, All_isolate_gene_df)
 
 if __name__ == "__main__":
     main()
