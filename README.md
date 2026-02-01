@@ -179,7 +179,7 @@ It is recommended to enable:
 `log_analysis: true`  
 to activate MPore’s activity assessment for candidate methyltransferases.  
 `split: true`  
-if available RAM is limited or unknown, to reduce memory usage at the expense of longer runtime.
+if available RAM is limited or unknown, to reduce memory usage at the expense of longer runtime.  
 `heatmap`  
 If `log_analysis` is set to false set `heatmap` accordingly to false
 
